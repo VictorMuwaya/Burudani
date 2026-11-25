@@ -1,0 +1,659 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Burudani.ViewModels"
+             xmlns:models="clr-namespace:Burudani.Models"
+             xmlns:controls="clr-namespace:Burudani.Controls"
+             xmlns:helpers="clr-namespace:Burudani.Helpers"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="Burudani.Views.PlayerPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource AppBackgroundLight}, Dark={StaticResource AppBackgroundDark}}">
+
+    <ContentView.BindingContext>
+        <vm:PlayerViewModel x:Name="ViewModel" />
+    </ContentView.BindingContext>
+
+    <Grid RowDefinitions="*">
+        <!-- Hidden audio player element -->
+        <toolkit:MediaElement x:Name="MediaElementPlayer"
+                              ShouldAutoPlay="True"
+                              IsVisible="False" />
+
+        <!-- ── Ambient Blurred Cover Art Backdrop ── -->
+        <Grid HorizontalOptions="Fill" VerticalOptions="Fill" InputTransparent="True">
+            <Image Source="{Binding Player.CurrentTrack.ThumbnailUrl}"
+                   Aspect="AspectFill"
+                   Opacity="0.28"
+                   HorizontalOptions="Fill"
+                   VerticalOptions="Fill"
+                   IsVisible="{Binding Player.CurrentTrack, Converter={StaticResource NullOrEmptyToBoolConverter}}" />
+
+            <!-- Frosted Gradient Tint Scrim -->
+            <BoxView HorizontalOptions="Fill"
+                     VerticalOptions="Fill"
+                     Color="{AppThemeBinding Light=#e6f8fafc, Dark=#e609090b}" />
+        </Grid>
+
+        <!-- ── DESKTOP (WINDOWS): TWO COLUMNS (LEFT: NOW PLAYING, RIGHT: PLAYLISTS / QUEUE TABS) ── -->
+        <Grid ColumnDefinitions="420, *"
+              ColumnSpacing="18"
+              Padding="20"
+              IsVisible="{OnPlatform WinUI=True, Default=False}">
+
+            <!-- ── LEFT COLUMN: CURRENT TRACK, ARTWORK & CONTROLS ── -->
+            <Border Grid.Column="0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <ScrollView>
+                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+
+                        <!-- Large Album Artwork -->
+                        <Border BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#18181b}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark=#3f3f46}"
+                                StrokeThickness="1"
+                                WidthRequest="250"
+                                HeightRequest="250"
+                                HorizontalOptions="Center">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <controls:ArtworkView ArtworkUrl="{Binding Player.CurrentTrack.ThumbnailUrl}"
+                                                  CacheKey="{Binding Player.CurrentTrack.Id}"
+                                                  CornerRadiusValue="12" />
+                        </Border>
+
+                        <!-- Track Details -->
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <Label Text="{Binding Player.CurrentTrack.Title, FallbackValue='No track selected'}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontAttributes="Bold"
+                                   FontSize="18"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"
+                                   LineBreakMode="TailTruncation"
+                                   MaximumWidthRequest="360" />
+                            <Label Text="{Binding Player.CurrentTrack.Artist, FallbackValue='Select a track from Explorer'}"
+                                   TextColor="#ea580c"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   HorizontalOptions="Center"
+                                   LineBreakMode="TailTruncation"
+                                   MaximumWidthRequest="360" />
+                            <Label Text="{Binding Player.CurrentTrack.Album}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   FontSize="11"
+                                   HorizontalOptions="Center"
+                                   IsVisible="{Binding Player.CurrentTrack.Album, Converter={StaticResource NullOrEmptyToBoolConverter}}" />
+                        </VerticalStackLayout>
+
+                        <!-- Add to Playlist Action Button -->
+                        <Button Text="+ Add to Playlist"
+                                Command="{Binding AddCurrentTrackToPlaylistCommand}"
+                                ToolTipProperties.Text="Add Current Track to Playlist"
+                                BackgroundColor="#24242a"
+                                TextColor="#cbd5e1"
+                                BorderColor="#3f3f46"
+                                BorderWidth="1"
+                                HeightRequest="30"
+                                Padding="14,0"
+                                CornerRadius="15"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                HorizontalOptions="Center" />
+
+                        <!-- Seek Slider & Timestamps -->
+                        <VerticalStackLayout Spacing="2" Margin="0,6,0,0" WidthRequest="340">
+                            <Grid VerticalOptions="Center">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDesktopSeekTapped" />
+                                </Grid.GestureRecognizers>
+                                <Slider Minimum="0"
+                                        Maximum="{Binding DurationSeconds}"
+                                        Value="{Binding PositionSeconds}"
+                                        ToolTipProperties.Text="Scrub / Seek Track Position"
+                                        MinimumTrackColor="#ea580c"
+                                        MaximumTrackColor="#27272a"
+                                        ThumbColor="#ea580c"
+                                        DragStarted="OnSliderDragStarted"
+                                        DragCompleted="OnSliderDragCompleted"
+                                        ValueChanged="OnSliderValueChanged" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*, *">
+                                <Label Grid.Column="0"
+                                       Text="{Binding PositionStr}"
+                                       TextColor="#94a3b8"
+                                       FontSize="10" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding DurationStr}"
+                                       TextColor="#94a3b8"
+                                       FontSize="10"
+                                       HorizontalOptions="End" />
+                            </Grid>
+                        </VerticalStackLayout>
+
+                        <!-- Transport Controls -->
+                        <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto"
+                              ColumnSpacing="14"
+                              HorizontalOptions="Center"
+                              VerticalOptions="Center">
+
+                            <!-- Shuffle -->
+                            <Button Grid.Column="0"
+                                    Text="{x:Static helpers:MaterialIcon.Shuffle}"
+                                    FontFamily="MaterialIcons"
+                                    ToolTipProperties.Text="Toggle Shuffle"
+                                    Command="{Binding ToggleShuffleCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{Binding Player.IsShuffle, Converter={StaticResource BoolToColorConverter}}"
+                                    FontSize="18"
+                                    WidthRequest="38"
+                                    HeightRequest="38"
+                                    Padding="0" />
+
+                            <!-- Previous -->
+                            <Button Grid.Column="1"
+                                    Text="{x:Static helpers:MaterialIcon.SkipPrevious}"
+                                    FontFamily="MaterialIcons"
+                                    ToolTipProperties.Text="Previous Track"
+                                    Command="{Binding PreviousCommand}"
+                                    BackgroundColor="#1c1c22"
+                                    TextColor="White"
+                                    FontSize="18"
+                                    WidthRequest="42"
+                                    HeightRequest="42"
+                                    CornerRadius="21"
+                                    Padding="0" />
+
+                            <!-- Play / Pause Primary Button -->
+                            <Button Grid.Column="2"
+                                    Text="{Binding Player.IsPlaying, Converter={StaticResource PlayPauseIconConverter}}"
+                                    FontFamily="MaterialIcons"
+                                    ToolTipProperties.Text="Play / Pause"
+                                    Command="{Binding TogglePlayPauseCommand}"
+                                    BackgroundColor="#ea580c"
+                                    TextColor="White"
+                                    FontSize="24"
+                                    WidthRequest="56"
+                                    HeightRequest="56"
+                                    CornerRadius="28"
+                                    Padding="0" />
+
+                            <!-- Next -->
+                            <Button Grid.Column="3"
+                                    Text="{x:Static helpers:MaterialIcon.SkipNext}"
+                                    FontFamily="MaterialIcons"
+                                    ToolTipProperties.Text="Next Track"
+                                    Command="{Binding NextCommand}"
+                                    BackgroundColor="#1c1c22"
+                                    TextColor="White"
+                                    FontSize="18"
+                                    WidthRequest="42"
+                                    HeightRequest="42"
+                                    CornerRadius="21"
+                                    Padding="0" />
+
+                            <!-- Repeat -->
+                            <Button Grid.Column="4"
+                                    Text="{x:Static helpers:MaterialIcon.Repeat}"
+                                    FontFamily="MaterialIcons"
+                                    ToolTipProperties.Text="Cycle Repeat Mode"
+                                    Command="{Binding CycleRepeatCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{Binding Player.Repeat, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=Off, Converter={StaticResource BoolToColorConverter}}"
+                                    FontSize="18"
+                                    WidthRequest="38"
+                                    HeightRequest="38"
+                                    Padding="0" />
+                        </Grid>
+
+                        <!-- Volume Slider -->
+                        <Grid ColumnDefinitions="Auto, *, Auto"
+                              ColumnSpacing="8"
+                              WidthRequest="280"
+                              VerticalOptions="Center"
+                              Margin="0,8,0,0">
+                            <Label Grid.Column="0"
+                                   Text="{x:Static helpers:MaterialIcon.VolumeMedium}"
+                                   FontFamily="MaterialIcons"
+                                   FontSize="16"
+                                   TextColor="#94a3b8"
+                                   VerticalOptions="Center" />
+                            <Slider Grid.Column="1"
+                                    Minimum="0"
+                                    Maximum="1"
+                                    ToolTipProperties.Text="Volume"
+                                    Value="{Binding Volume}"
+                                    MinimumTrackColor="#ea580c"
+                                    MaximumTrackColor="#27272a"
+                                    ThumbColor="#ea580c" />
+                            <Label Grid.Column="2"
+                                   Text="{Binding Volume, StringFormat='{0:P0}'}"
+                                   TextColor="#71717a"
+                                   FontSize="10"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Border>
+
+            <!-- ── RIGHT COLUMN: PLAYLISTS, QUEUE & HISTORY TABS ── -->
+            <Border Grid.Column="1"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto, *" RowSpacing="12">
+
+                    <!-- Tab Selector Row -->
+                    <Border Grid.Row="0"
+                            BackgroundColor="Transparent"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="3"
+                            HeightRequest="36"
+                            HorizontalOptions="Start">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="18" />
+                        </Border.StrokeShape>
+                        <HorizontalStackLayout Spacing="3">
+                            <!-- Queue Tab -->
+                            <Border StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToColorConverter}, ConverterParameter=0}"
+                                    Padding="14,4">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.FormatListBulleted}"
+                                           FontFamily="MaterialIcons"
+                                           FontSize="13"
+                                           TextColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToTextColorConverter}, ConverterParameter=0}" />
+                                    <Label Text="Now Playing Queue"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           TextColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToTextColorConverter}, ConverterParameter=0}" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="0" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- Playlists Tab -->
+                            <Border StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToColorConverter}, ConverterParameter=1}"
+                                    Padding="14,4">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.PlaylistMusic}"
+                                           FontFamily="MaterialIcons"
+                                           FontSize="13"
+                                           TextColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToTextColorConverter}, ConverterParameter=1}" />
+                                    <Label Text="My Playlists"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           TextColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToTextColorConverter}, ConverterParameter=1}" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="1" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- History Tab -->
+                            <Border StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToColorConverter}, ConverterParameter=2}"
+                                    Padding="14,4">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.History}"
+                                           FontFamily="MaterialIcons"
+                                           FontSize="13"
+                                           TextColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToTextColorConverter}, ConverterParameter=2}" />
+                                    <Label Text="Recently Played"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           TextColor="{Binding SelectedTabIndex, Converter={StaticResource IntEqualToTextColorConverter}, ConverterParameter=2}" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="2" />
+                                </Border.GestureRecognizers>
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- TAB 0: NOW PLAYING QUEUE -->
+                    <Grid Grid.Row="1"
+                          RowDefinitions="Auto, *"
+                          RowSpacing="8"
+                          IsVisible="{Binding SelectedTabIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0}">
+                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Text="{Binding Playlist.Count, StringFormat='Active Queue ({0} songs)'}"
+                                   TextColor="#ea580c"
+                                   FontAttributes="Bold"
+                                   FontSize="12"
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="1"
+                                    Text="Clear Queue"
+                                    Command="{Binding ClearQueueCommand}"
+                                    BackgroundColor="#24242a"
+                                    TextColor="#94a3b8"
+                                    FontSize="10"
+                                    HeightRequest="26"
+                                    Padding="10,0"
+                                    CornerRadius="4" />
+                        </Grid>
+
+                        <CollectionView Grid.Row="1" ItemsSource="{Binding Playlist}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:TrackItem">
+                                    <Border BackgroundColor="#18181b"
+                                            Stroke="#27272a"
+                                            Padding="10,6"
+                                            Margin="0,2">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="6" />
+                                        </Border.StrokeShape>
+                                        <Grid ColumnDefinitions="36, *, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                            <controls:ArtworkView Grid.Column="0"
+                                                                  WidthRequest="32"
+                                                                  HeightRequest="32"
+                                                                  ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                  CacheKey="{Binding Id}"
+                                                                  CornerRadiusValue="4" />
+                                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                <Label Text="{Binding Title}" TextColor="White" FontSize="12" LineBreakMode="TailTruncation" />
+                                                <Label Text="{Binding Artist}" TextColor="#94a3b8" FontSize="10" LineBreakMode="TailTruncation" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="2"
+                                                    Text="{x:Static helpers:MaterialIcon.Play}"
+                                                    FontFamily="MaterialIcons"
+                                                    FontSize="14"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PlayerViewModel}}, Path=PlayFromPlaylistCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="#24242a"
+                                                    TextColor="#ea580c"
+                                                    WidthRequest="28"
+                                                    HeightRequest="28"
+                                                    CornerRadius="14"
+                                                    Padding="0" />
+                                            <Button Grid.Column="3"
+                                                    Text="{x:Static helpers:MaterialIcon.Close}"
+                                                    FontFamily="MaterialIcons"
+                                                    FontSize="14"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PlayerViewModel}}, Path=RemoveFromQueueCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="#71717a"
+                                                    WidthRequest="28"
+                                                    HeightRequest="28"
+                                                    Padding="0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+
+                    <!-- TAB 1: PLAYLISTS MANAGER -->
+                    <Grid Grid.Row="1"
+                          RowDefinitions="Auto, *"
+                          RowSpacing="10"
+                          IsVisible="{Binding SelectedTabIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=1}">
+
+                        <!-- Top Controls: Playlist Selector + Actions -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <!-- Playlist Selector Capsule -->
+                            <Border Grid.Column="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                    StrokeThickness="1"
+                                    HeightRequest="34"
+                                    Padding="10,0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="6" />
+                                </Border.StrokeShape>
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.PlaylistMusic}"
+                                           FontFamily="MaterialIcons"
+                                           TextColor="#ea580c"
+                                           FontSize="16"
+                                           VerticalOptions="Center" />
+                                    <Label Text="{Binding SelectedPlaylist}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                           FontAttributes="Bold"
+                                           FontSize="12"
+                                           VerticalOptions="Center" />
+                                    <Label Text="▾"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontSize="10"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ChoosePlaylistCommand}" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- + New Playlist Button -->
+                            <Button Grid.Column="1"
+                                    Text="+ New Playlist"
+                                    Command="{Binding CreatePlaylistCommand}"
+                                    BackgroundColor="#10b981"
+                                    TextColor="White"
+                                    FontAttributes="Bold"
+                                    FontSize="11"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    CornerRadius="6" />
+
+                            <!-- Delete Playlist Button -->
+                            <Button Grid.Column="2"
+                                    Text="{x:Static helpers:MaterialIcon.Delete}"
+                                    FontFamily="MaterialIcons"
+                                    Command="{Binding DeletePlaylistCommand}"
+                                    IsEnabled="{Binding CanDeleteSelectedPlaylist}"
+                                    BackgroundColor="#24242a"
+                                    TextColor="#ef4444"
+                                    FontSize="14"
+                                    WidthRequest="34"
+                                    HeightRequest="34"
+                                    CornerRadius="6"
+                                    Padding="0" />
+
+                            <!-- Play All Button -->
+                            <Button Grid.Column="3"
+                                    Text="▶ Play All"
+                                    Command="{Binding PlayAllFromPlaylistCommand}"
+                                    BackgroundColor="#ea580c"
+                                    TextColor="White"
+                                    FontAttributes="Bold"
+                                    FontSize="11"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    CornerRadius="6" />
+                        </Grid>
+
+                        <!-- Tracks in Selected Playlist -->
+                        <Grid Grid.Row="1">
+                            <Label Text="This playlist is empty. Add songs from Explorer or Player."
+                                   TextColor="#71717a"
+                                   FontSize="12"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   IsVisible="{Binding SelectedPlaylistTracks.Count, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0}" />
+
+                            <CollectionView ItemsSource="{Binding SelectedPlaylistTracks}"
+                                            IsVisible="{Binding SelectedPlaylistTracks.Count, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0, Converter={StaticResource InvertedBoolConverter}}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:TrackItem">
+                                        <Border BackgroundColor="#18181b"
+                                                Stroke="#27272a"
+                                                Padding="10,6"
+                                                Margin="0,2">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="6" />
+                                            </Border.StrokeShape>
+                                            <Grid ColumnDefinitions="36, *, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                                <controls:ArtworkView Grid.Column="0"
+                                                                      WidthRequest="32"
+                                                                      HeightRequest="32"
+                                                                      ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                      CacheKey="{Binding Id}"
+                                                                      CornerRadiusValue="4" />
+                                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                    <Label Text="{Binding Title}" TextColor="White" FontSize="12" LineBreakMode="TailTruncation" />
+                                                    <Label Text="{Binding Artist}" TextColor="#94a3b8" FontSize="10" LineBreakMode="TailTruncation" />
+                                                </VerticalStackLayout>
+                                                <Button Grid.Column="2"
+                                                        Text="{x:Static helpers:MaterialIcon.Play}"
+                                                        FontFamily="MaterialIcons"
+                                                        FontSize="14"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PlayerViewModel}}, Path=PlayPlaylistTrackCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="#24242a"
+                                                        TextColor="#ea580c"
+                                                        WidthRequest="28"
+                                                        HeightRequest="28"
+                                                        CornerRadius="14"
+                                                        Padding="0" />
+                                                <Button Grid.Column="3"
+                                                        Text="{x:Static helpers:MaterialIcon.DeleteOutline}"
+                                                        FontFamily="MaterialIcons"
+                                                        FontSize="14"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PlayerViewModel}}, Path=RemoveTrackFromPlaylistCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="Transparent"
+                                                        TextColor="#ef4444"
+                                                        WidthRequest="28"
+                                                        HeightRequest="28"
+                                                        Padding="0" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Grid>
+
+                    <!-- TAB 2: RECENTLY PLAYED HISTORY -->
+                    <Grid Grid.Row="1"
+                          IsVisible="{Binding SelectedTabIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=2}">
+                        <CollectionView ItemsSource="{Binding PlayHistory}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:TrackItem">
+                                    <Border BackgroundColor="#18181b"
+                                            Stroke="#27272a"
+                                            Padding="10,6"
+                                            Margin="0,2">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="6" />
+                                        </Border.StrokeShape>
+                                        <Grid ColumnDefinitions="36, *, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                            <controls:ArtworkView Grid.Column="0"
+                                                                  WidthRequest="32"
+                                                                  HeightRequest="32"
+                                                                  ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                  CacheKey="{Binding Id}"
+                                                                  CornerRadiusValue="4" />
+                                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                <Label Text="{Binding Title}" TextColor="White" FontSize="12" LineBreakMode="TailTruncation" />
+                                                <Label Text="{Binding Artist}" TextColor="#94a3b8" FontSize="10" LineBreakMode="TailTruncation" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="2"
+                                                    Text="{x:Static helpers:MaterialIcon.Play}"
+                                                    FontFamily="MaterialIcons"
+                                                    FontSize="14"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PlayerViewModel}}, Path=PlayFromPlaylistCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="#24242a"
+                                                    TextColor="#ea580c"
+                                                    WidthRequest="28"
+                                                    HeightRequest="28"
+                                                    CornerRadius="14"
+                                                    Padding="0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ── MOBILE (ANDROID) FLUID MOTION IMMERSIVE PLAYER ── -->
+        <Grid IsVisible="{OnPlatform WinUI=False, Default=True}" x:Name="MobilePlayerRoot">
+            <Grid.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnPlayerPanUpdated" />
+            </Grid.GestureRecognizers>
+            <Grid x:Name="MotionContainer" Padding="20,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <!-- Row 0: Morphing Artwork -->
+                <Grid Grid.Row="0" x:Name="MorphingArtworkContainer" HeightRequest="240" HorizontalOptions="Center" Margin="0,10,0,14">
+                    <Border x:Name="ArtworkBorder" WidthRequest="220" HeightRequest="220" HorizontalOptions="Center" VerticalOptions="Center" BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#141418}" Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark=#3f3f46}" StrokeThickness="1">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                        <controls:ArtworkView x:Name="MainArtworkView" ArtworkUrl="{Binding Player.CurrentTrack.ThumbnailUrl}" CacheKey="{Binding Player.CurrentTrack.Id}" CornerRadiusValue="16" />
+                    </Border>
+                </Grid>
+                <!-- Row 1: Track Info -->
+                <VerticalStackLayout Grid.Row="1" x:Name="TrackInfoContainer" Spacing="4" HorizontalOptions="Center" Margin="0,0,0,14">
+                    <Label x:Name="TrackTitleLabel" Text="{Binding Player.CurrentTrack.Title, FallbackValue='No track selected'}" TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" FontAttributes="Bold" FontSize="18" HorizontalOptions="Center" HorizontalTextAlignment="Center" LineBreakMode="TailTruncation" MaxLines="1" />
+                    <Label x:Name="TrackArtistLabel" Text="{Binding Player.CurrentTrack.Artist, FallbackValue='Select a track from Discovery'}" TextColor="#ea580c" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center" LineBreakMode="TailTruncation" MaxLines="1" />
+                </VerticalStackLayout>
+                <!-- Row 2: Expanding Thumbless Seekbar -->
+                <VerticalStackLayout Grid.Row="2" x:Name="SeekbarContainer" Spacing="6" Margin="4,0,4,14">
+                    <Border x:Name="ExpandingSeekTrack" HeightRequest="6" BackgroundColor="{AppThemeBinding Light=#cbd5e1, Dark=#27272a}" StrokeThickness="0" Padding="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="3" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <PanGestureRecognizer PanUpdated="OnSeekbarPanUpdated" />
+                            <TapGestureRecognizer Tapped="OnSeekbarTapped" />
+                        </Border.GestureRecognizers>
+                        <Grid HorizontalOptions="Fill">
+                            <BoxView x:Name="SeekProgressFill" Color="#ea580c" HorizontalOptions="Start" WidthRequest="0" />
+                        </Grid>
+                    </Border>
+                    <Grid ColumnDefinitions="*, *">
+                        <Label Grid.Column="0" Text="{Binding PositionStr}" TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" FontSize="10" />
+                        <Label Grid.Column="1" Text="{Binding DurationStr}" TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" FontSize="10" HorizontalOptions="End" />
+                    </Grid>
+                </VerticalStackLayout>
+                <!-- Row 3: Transport Controls -->
+                <Grid Grid.Row="3" x:Name="TransportControlsContainer" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" HorizontalOptions="Center" Margin="0,0,0,16">
+                    <Button Grid.Column="0" Text="{x:Static helpers:MaterialIcon.Shuffle}" FontFamily="MaterialIcons" Command="{Binding ToggleShuffleCommand}" BackgroundColor="Transparent" TextColor="{Binding Player.IsShuffle, Converter={StaticResource BoolToColorConverter}}" FontSize="18" WidthRequest="36" HeightRequest="36" Padding="0" />
+                    <Button Grid.Column="1" Text="{x:Static helpers:MaterialIcon.SkipPrevious}" FontFamily="MaterialIcons" Command="{Binding PreviousCommand}" BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#1c1c22}" TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" FontSize="18" WidthRequest="42" HeightRequest="42" CornerRadius="21" Padding="0" />
+                    <Button Grid.Column="2" Text="{Binding Player.IsPlaying, Converter={StaticResource PlayPauseIconConverter}}" FontFamily="MaterialIcons" Command="{Binding TogglePlayPauseCommand}" BackgroundColor="#ea580c" TextColor="White" FontSize="22" WidthRequest="54" HeightRequest="54" CornerRadius="27" Padding="0" />
+                    <Button Grid.Column="3" Text="{x:Static helpers:MaterialIcon.SkipNext}" FontFamily="MaterialIcons" Command="{Binding NextCommand}" BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#1c1c22}" TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" FontSize="18" WidthRequest="42" HeightRequest="42" CornerRadius="21" Padding="0" />
+                    <Button Grid.Column="4" Text="{x:Static helpers:MaterialIcon.Repeat}" FontFamily="MaterialIcons" Command="{Binding CycleRepeatCommand}" BackgroundColor="Transparent" TextColor="{Binding Player.Repeat, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=Off, Converter={StaticResource BoolToColorConverter}}" FontSize="18" WidthRequest="36" HeightRequest="36" Padding="0" />
+                </Grid>
+                <!-- Row 4: Revealed Queue -->
+                <Grid Grid.Row="4" x:Name="RevealedQueueContainer" RowDefinitions="Auto,*" Opacity="0" IsVisible="False">
+                    <Label Grid.Row="0" Text="Playing Queue" TextColor="#ea580c" FontAttributes="Bold" FontSize="13" Margin="0,0,0,8" />
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding Playlist}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:TrackItem">
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}" Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}" Padding="10,6" Margin="0,3">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                        <controls:ArtworkView Grid.Column="0" WidthRequest="32" HeightRequest="32" ArtworkUrl="{Binding ThumbnailUrl}" CacheKey="{Binding Id}" CornerRadiusValue="4" />
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                            <Label Text="{Binding Title}" TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" FontSize="12" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding Artist}" TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" FontSize="10" LineBreakMode="TailTruncation" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="2" Text="{x:Static helpers:MaterialIcon.Play}" FontFamily="MaterialIcons" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PlayerViewModel}}, Path=PlayFromPlaylistCommand}" CommandParameter="{Binding .}" BackgroundColor="Transparent" TextColor="#ea580c" WidthRequest="28" HeightRequest="28" Padding="0" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentView>

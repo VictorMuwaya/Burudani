@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Burudani.ViewModels"
+             xmlns:models="clr-namespace:Burudani.Models"
+             xmlns:controls="clr-namespace:Burudani.Controls"
+             xmlns:helpers="clr-namespace:Burudani.Helpers"
+             x:Class="Burudani.Views.ExplorerPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource AppBackgroundLight}, Dark={StaticResource AppBackgroundDark}}">
+
+    <ContentView.BindingContext>
+        <vm:ExplorerViewModel x:Name="ViewModel" />
+    </ContentView.BindingContext>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- ── Search & Filter Header Panel ── -->
+        <Border Grid.Row="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                StrokeThickness="1"
+                Padding="16,10">
+            <VerticalStackLayout Spacing="8">
+                <!-- Top Row: Search Input + Buttons -->
+                <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8">
+                    <Border Grid.Column="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="10,0"
+                            HeightRequest="40">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="6" />
+                        </Border.StrokeShape>
+                        <Grid ColumnDefinitions="Auto, *">
+                            <Label Text="{x:Static helpers:MaterialIcon.Magnify}"
+                                   FontFamily="MaterialIcons"
+                                   TextColor="#ea580c"
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   Margin="0,0,8,0" />
+                            <Entry Grid.Column="1"
+                                   x:Name="SearchEntry"
+                                   Text="{Binding SearchQuery}"
+                                   Placeholder="Search songs, artists, albums, or paste YouTube URLs..."
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="13"
+                                   ClearButtonVisibility="WhileEditing"
+                                   Completed="OnSearchCompleted"
+                                   TextChanged="OnSearchTextChanged" />
+                        </Grid>
+                    </Border>
+
+                    <Button Grid.Column="1"
+                            Text="Search"
+                            Command="{Binding SearchCommand}"
+                            BackgroundColor="#ea580c"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="12"
+                            HeightRequest="40"
+                            Padding="18,0"
+                            CornerRadius="6" />
+
+                    <Button Grid.Column="2"
+                            Text="Clear"
+                            Command="{Binding ClearSearchCommand}"
+                            BackgroundColor="#24242a"
+                            TextColor="#cbd5e1"
+                            BorderColor="#3f3f46"
+                            BorderWidth="1"
+                            FontSize="12"
+                            HeightRequest="40"
+                            Padding="14,0"
+                            CornerRadius="6" />
+                </Grid>
+
+                <!-- Autocomplete Dropdown Suggestions -->
+                <CollectionView ItemsSource="{Binding Suggestions}"
+                                MaximumHeightRequest="150"
+                                IsVisible="{Binding HasSuggestions}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border BackgroundColor="#18181d"
+                                    Stroke="#27272a"
+                                    Padding="12,8">
+                                <Label Text="{Binding .}"
+                                       TextColor="#e2e8f0"
+                                       FontSize="13" />
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSuggestionTapped" />
+                                </Border.GestureRecognizers>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Filter Controls Bar (Horizontally scrollable for seamless mobile and desktop layout) -->
+                <ScrollView Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <!-- Dropdown 1: Content Type (Songs / Albums) -->
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                StrokeThickness="1"
+                                HeightRequest="34"
+                                Padding="10,0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="{x:Static helpers:MaterialIcon.MusicNote}"
+                                       FontFamily="MaterialIcons"
+                                       TextColor="#ea580c"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                                <Label Text="{Binding SelectedFilterType}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center" />
+                                <Label Text="▾"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       FontSize="10"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ChooseFilterTypeCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+
+                        <!-- Dropdown 2: Layout Mode (Grid / List) -->
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                StrokeThickness="1"
+                                HeightRequest="34"
+                                Padding="10,0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="{x:Static helpers:MaterialIcon.ViewGrid}"
+                                       FontFamily="MaterialIcons"
+                                       TextColor="#ea580c"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                                <Label Text="{Binding SelectedViewMode}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center" />
+                                <Label Text="▾"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       FontSize="10"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ChooseViewModeCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+
+                        <!-- Dropdown 3: Catalog Source -->
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                StrokeThickness="1"
+                                HeightRequest="34"
+                                Padding="10,0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="{x:Static helpers:MaterialIcon.Web}"
+                                       FontFamily="MaterialIcons"
+                                       TextColor="#ea580c"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                                <Label Text="{Binding CurrentSource.Value}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center" />
+                                <Label Text="▾"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       FontSize="10"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ChooseSourceCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+
+                        <!-- Dropdown 4: Region -->
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                StrokeThickness="1"
+                                HeightRequest="34"
+                                Padding="10,0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="{x:Static helpers:MaterialIcon.Earth}"
+                                       FontFamily="MaterialIcons"
+                                       TextColor="#ea580c"
+                                       FontSize="14"
+                                       VerticalOptions="Center" />
+                                <Label Text="{Binding CurrentRegion.Value}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center" />
+                                <Label Text="▾"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       FontSize="10"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ChooseRegionCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </HorizontalStackLayout>
+                </ScrollView>
+
+                <!-- Genre Selector Pills Bar (Shown in Discovery Mode) -->
+                <ScrollView Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never"
+                            IsVisible="{Binding IsGenreBarVisible}">
+                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Genres}"
+                                           Spacing="8"
+                                           Padding="0,4,0,2">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:GenreItem">
+                                <Border StrokeShape="RoundRectangle 14"
+                                        StrokeThickness="1"
+                                        Padding="14,6"
+                                        BackgroundColor="{Binding IsSelected, Converter={StaticResource GenreBgConverter}}"
+                                        Stroke="{Binding IsSelected, Converter={StaticResource GenreStrokeConverter}}">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="11"
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding IsSelected, Converter={StaticResource GenreTextConverter}}"
+                                           VerticalOptions="Center" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=SelectGenreCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ── Main Content Area ── -->
+        <Grid Grid.Row="1">
+            <!-- 1. Centered Offline / Connection Error Card -->
+            <Border IsVisible="{Binding IsOffline}"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="32,24"
+                    MaximumWidthRequest="420">
+                <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+                    <Label Text="{x:Static helpers:MaterialIcon.CloudOffOutline}"
+                           FontFamily="MaterialIcons"
+                           FontSize="48"
+                           TextColor="#ea580c"
+                           HorizontalOptions="Center" />
+                    <Label Text="Connection Problem"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding ErrorMessage}"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="12"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                    <Button Text="Check Connection &amp; Retry"
+                            Command="{Binding RetryCommand}"
+                            BackgroundColor="#ea580c"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="6"
+                            HeightRequest="42"
+                            Padding="24,0"
+                            HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 2. Loading State (Equalizer Animation) -->
+            <VerticalStackLayout IsVisible="{Binding IsLoading}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="12">
+                <WebView x:Name="LottieWebView"
+                         WidthRequest="180"
+                         HeightRequest="180"
+                         BackgroundColor="Transparent"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center" />
+                <Label Text="{Binding StatusMessage}"
+                       TextColor="#cbd5e1"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- 3. Results Container (Hidden while loading or offline) -->
+            <Grid IsVisible="{Binding IsContentVisible}">
+                <!-- Songs View (when FilterIndex == 0) -->
+                <Grid IsVisible="{Binding FilterIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0}">
+                <!-- Songs Grid View -->
+                <ScrollView IsVisible="{Binding ViewModeIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0}">
+                    <VerticalStackLayout Padding="16" Spacing="12">
+                        <Label Text="{Binding StatusMessage}"
+                               TextColor="#94a3b8"
+                               FontSize="13"
+                               FontAttributes="Bold" />
+
+                        <!-- Responsive Card Collection -->
+                        <CollectionView ItemsSource="{Binding Tracks}">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout Orientation="Vertical"
+                                                 Span="{OnPlatform WinUI=4, Default=2}"
+                                                 HorizontalItemSpacing="12"
+                                                 VerticalItemSpacing="12" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:TrackItem">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                            StrokeThickness="1"
+                                            Padding="10">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="12" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <PointerGestureRecognizer PointerEntered="OnCardPointerEntered"
+                                                                      PointerExited="OnCardPointerExited" />
+                                        </Border.GestureRecognizers>
+                                        <VerticalStackLayout Spacing="8">
+                                            <!-- Full Artwork with Centered Translucent Play & Top-Right Download -->
+                                            <Grid HeightRequest="136">
+                                                <controls:ArtworkView HeightRequest="136"
+                                                                      ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                      CacheKey="{Binding Id}"
+                                                                      CornerRadiusValue="8" />
+
+                                                <!-- Centered Translucent Play Button -->
+                                                <Button Text="{x:Static helpers:MaterialIcon.Play}"
+                                                        FontFamily="MaterialIcons"
+                                                        FontSize="22"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=PlayTrackCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="#8018181b"
+                                                        TextColor="#ea580c"
+                                                        BorderColor="#40ffffff"
+                                                        BorderWidth="1"
+                                                        WidthRequest="46"
+                                                        HeightRequest="46"
+                                                        CornerRadius="23"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center"
+                                                        Padding="0" />
+
+                                                <!-- Top-Right Accent Download Button -->
+                                                <Button Text="{x:Static helpers:MaterialIcon.Download}"
+                                                        FontFamily="MaterialIcons"
+                                                        FontSize="15"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=QueueTrackCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="#c8ea580c"
+                                                        TextColor="White"
+                                                        WidthRequest="32"
+                                                        HeightRequest="32"
+                                                        CornerRadius="16"
+                                                        HorizontalOptions="End"
+                                                        VerticalOptions="Start"
+                                                        Margin="6"
+                                                        Padding="0" />
+
+                                                <!-- Duration Badge (Bottom-Right) -->
+                                                <Border HorizontalOptions="End"
+                                                        VerticalOptions="End"
+                                                        Margin="6"
+                                                        BackgroundColor="#b3000000"
+                                                        Padding="6,2"
+                                                        StrokeThickness="0">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="4" />
+                                                    </Border.StrokeShape>
+                                                    <Label Text="{Binding DurationStr}"
+                                                           TextColor="White"
+                                                           FontSize="10"
+                                                           FontAttributes="Bold" />
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Song Title & Artist Cleanly Below Artwork -->
+                                            <VerticalStackLayout Spacing="2">
+                                                <Label Text="{Binding Title}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                                       FontAttributes="Bold"
+                                                       FontSize="13"
+                                                       MaxLines="1"
+                                                       LineBreakMode="TailTruncation" />
+
+                                                <Label Text="{Binding Artist}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                       FontSize="11"
+                                                       MaxLines="1"
+                                                       LineBreakMode="TailTruncation" />
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Songs List View -->
+                <ScrollView IsVisible="{Binding ViewModeIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=1}">
+                    <VerticalStackLayout Padding="16" Spacing="6">
+                        <CollectionView ItemsSource="{Binding Tracks}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:TrackItem">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                            StrokeThickness="1"
+                                            Padding="10,8"
+                                            Margin="0,2">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="8" />
+                                        </Border.StrokeShape>
+                                        <Grid ColumnDefinitions="48, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                            <Grid Grid.Column="0" WidthRequest="44" HeightRequest="44">
+                                                <controls:ArtworkView WidthRequest="44"
+                                                                      HeightRequest="44"
+                                                                      ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                      CacheKey="{Binding Id}"
+                                                                      CornerRadiusValue="6" />
+                                                <Button Text="{x:Static helpers:MaterialIcon.Play}"
+                                                        FontFamily="MaterialIcons"
+                                                        FontSize="15"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=PlayTrackCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="#8018181b"
+                                                        TextColor="#ea580c"
+                                                        WidthRequest="28"
+                                                        HeightRequest="28"
+                                                        CornerRadius="14"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center"
+                                                        Padding="0" />
+                                            </Grid>
+
+                                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                                <Label Text="{Binding Title}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                                       FontAttributes="Bold"
+                                                       FontSize="13"
+                                                       LineBreakMode="TailTruncation" />
+                                                <HorizontalStackLayout Spacing="6">
+                                                    <Label Text="{Binding Artist}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                           FontSize="11"
+                                                           LineBreakMode="TailTruncation" />
+                                                    <Label Text="•"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                           FontSize="11" />
+                                                    <Label Text="{Binding DurationStr}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                           FontSize="11" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+
+                                            <!-- Download / Queue Button -->
+                                            <Button Grid.Column="2"
+                                                    Text="{x:Static helpers:MaterialIcon.Download}"
+                                                    FontFamily="MaterialIcons"
+                                                    FontSize="16"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=QueueTrackCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="#ea580c"
+                                                    TextColor="White"
+                                                    WidthRequest="34"
+                                                    HeightRequest="34"
+                                                    CornerRadius="17"
+                                                    Padding="0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+
+            <!-- 4. Albums View (when FilterIndex == 1) -->
+            <Grid IsVisible="{Binding FilterIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=1}">
+                <!-- Albums Grid View -->
+                <ScrollView IsVisible="{Binding ViewModeIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0}">
+                    <VerticalStackLayout Padding="16" Spacing="12">
+                        <CollectionView ItemsSource="{Binding Albums}">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout Orientation="Vertical"
+                                                 Span="{OnPlatform WinUI=4, Default=2}"
+                                                 HorizontalItemSpacing="12"
+                                                 VerticalItemSpacing="12" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:AlbumItem">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                            StrokeThickness="1"
+                                            Padding="10">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="8" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <PointerGestureRecognizer PointerEntered="OnCardPointerEntered"
+                                                                      PointerExited="OnCardPointerExited" />
+                                        </Border.GestureRecognizers>
+                                        <VerticalStackLayout Spacing="8">
+                                            <controls:ArtworkView HeightRequest="130"
+                                                                  ArtworkUrl="{Binding ArtworkUrl}"
+                                                                  CacheKey="{Binding AlbumId}"
+                                                                  CornerRadiusValue="6" />
+
+                                            <Label Text="{Binding Title}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   LineBreakMode="TailTruncation" />
+
+                                            <Label Text="{Binding Artist}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                   FontSize="11"
+                                                   LineBreakMode="TailTruncation" />
+
+                                            <Label Text="{Binding SubTitle}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                   FontSize="10" />
+
+                                            <Button Text="Download Album"
+                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=QueueAlbumCommand}"
+                                                     CommandParameter="{Binding .}"
+                                                     BackgroundColor="#ea580c"
+                                                     TextColor="White"
+                                                     FontSize="11"
+                                                     FontAttributes="Bold"
+                                                     HeightRequest="32"
+                                                     Padding="0"
+                                                     CornerRadius="4" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Albums List View with Accordion Expansion -->
+                <ScrollView IsVisible="{Binding ViewModeIndex, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=1}">
+                    <VerticalStackLayout Padding="16" Spacing="8">
+                        <CollectionView ItemsSource="{Binding Albums}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:AlbumItem">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                            Padding="12,10"
+                                            Margin="0,4">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="6" />
+                                        </Border.StrokeShape>
+                                        <VerticalStackLayout Spacing="8">
+                                            <Grid ColumnDefinitions="48, *, Auto, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                                <controls:ArtworkView Grid.Column="0"
+                                                                      WidthRequest="44"
+                                                                      HeightRequest="44"
+                                                                      ArtworkUrl="{Binding ArtworkUrl}"
+                                                                      CacheKey="{Binding AlbumId}"
+                                                                      CornerRadiusValue="4" />
+
+                                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                    <Label Text="{Binding Title}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                                           FontAttributes="Bold"
+                                                           FontSize="13" />
+                                                    <Label Text="{Binding Artist}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                           FontSize="11" />
+                                                </VerticalStackLayout>
+
+                                                <Button Grid.Column="2"
+                                                        Text="Tracks"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=ToggleAlbumExpandCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#24242a}"
+                                                        TextColor="{AppThemeBinding Light=#1e293b, Dark=#cbd5e1}"
+                                                        FontSize="11"
+                                                        HeightRequest="32"
+                                                        Padding="12,0"
+                                                        CornerRadius="4" />
+
+                                                <Button Grid.Column="3"
+                                                        Text="Album"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=QueueAlbumCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="#ea580c"
+                                                        TextColor="White"
+                                                        FontSize="11"
+                                                        FontAttributes="Bold"
+                                                        HeightRequest="32"
+                                                        Padding="12,0"
+                                                        CornerRadius="4" />
+                                            </Grid>
+
+                                            <!-- Expanded Tracks List -->
+                                            <VerticalStackLayout IsVisible="{Binding IsExpanded}"
+                                                                 Padding="56,4,0,4"
+                                                                 Spacing="4">
+                                                <ActivityIndicator IsRunning="{Binding IsLoadingTracks}"
+                                                                   IsVisible="{Binding IsLoadingTracks}"
+                                                                   Color="#ea580c" />
+                                                <BindableLayout.ItemsSource>
+                                                    <Binding Path="Tracks" />
+                                                </BindableLayout.ItemsSource>
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:TrackItem">
+                                                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8" Padding="0,4">
+                                                            <Label Grid.Column="0"
+                                                                   Text="{Binding Title}"
+                                                                   TextColor="#e2e8f0"
+                                                                   FontSize="12"
+                                                                   VerticalOptions="Center" />
+                                                            <Button Grid.Column="1"
+                                                                    Text="{x:Static helpers:MaterialIcon.Play}"
+                                                                    FontFamily="MaterialIcons"
+                                                                    FontSize="14"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=PlayTrackCommand}"
+                                                                    CommandParameter="{Binding .}"
+                                                                    BackgroundColor="#24242a"
+                                                                    TextColor="#ea580c"
+                                                                    WidthRequest="28"
+                                                                    HeightRequest="28"
+                                                                    CornerRadius="14"
+                                                                    Padding="0" />
+                                                            <Button Grid.Column="2"
+                                                                    Text="{x:Static helpers:MaterialIcon.Download}"
+                                                                    FontFamily="MaterialIcons"
+                                                                    FontSize="14"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ExplorerViewModel}}, Path=QueueTrackCommand}"
+                                                                    CommandParameter="{Binding .}"
+                                                                    BackgroundColor="#ea580c"
+                                                                    TextColor="White"
+                                                                    WidthRequest="28"
+                                                                    HeightRequest="28"
+                                                                    CornerRadius="14"
+                                                                    Padding="0" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentView>

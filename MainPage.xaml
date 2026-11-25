@@ -1,0 +1,968 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:Burudani.Views"
+             xmlns:controls="clr-namespace:Burudani.Controls"
+             xmlns:helpers="clr-namespace:Burudani.Helpers"
+             xmlns:models="clr-namespace:Burudani.Models"
+             x:Class="Burudani.MainPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource AppBackgroundLight}, Dark={StaticResource AppBackgroundDark}}">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+        <!-- ── Unified Title & Navigation Header Bar (Serves as the Native Title Bar on Windows) ── -->
+        <Border Grid.Row="0"
+                x:Name="TitleBarRow"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                StrokeThickness="1"
+                Padding="0"
+                HeightRequest="{OnPlatform WinUI=42, Default=48}">
+            <Grid>
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- 1. WINDOWS DESKTOP TITLE BAR (Full Width + Drag Region)     -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <Grid IsVisible="{OnPlatform WinUI=True, Default=False}"
+                      ColumnDefinitions="Auto, *, Auto"
+                      ColumnSpacing="12"
+                      Padding="12,0,140,0"
+                      VerticalOptions="Center">
+
+                    <!-- Left: Brand Drag Region with Beta Badge -->
+                    <HorizontalStackLayout Grid.Column="0"
+                                           x:Name="BrandTitleBarArea"
+                                           Spacing="8"
+                                           VerticalOptions="Center">
+                        <Image Source="burudani.png"
+                               WidthRequest="22"
+                               HeightRequest="22"
+                               VerticalOptions="Center" />
+                        <Label Text="Burudani"
+                               TextColor="#ea580c"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               VerticalOptions="Center" />
+                        <Border BackgroundColor="{AppThemeBinding Light=#fff7ed, Dark=#271d18}"
+                                Stroke="#ea580c"
+                                StrokeThickness="1"
+                                Padding="5,1"
+                                VerticalOptions="Center">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <Label Text="BETA"
+                                   TextColor="#ea580c"
+                                   FontSize="9"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <!-- Center: Desktop Navigation Pills -->
+                    <ScrollView Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalScrollBarVisibility="Never"
+                                VerticalOptions="Center"
+                                Margin="8,0,0,0">
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <!-- Discovery -->
+                            <Border x:Name="NavDiscoveryBorder"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1"
+                                    Padding="12,5"
+                                    ToolTipProperties.Text="Discovery"
+                                    BackgroundColor="#ea580c"
+                                    Stroke="#ea580c">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.Compass}"
+                                           FontFamily="MaterialIcons"
+                                           x:Name="NavDiscoveryIcon"
+                                           TextColor="White"
+                                           FontSize="14"
+                                           VerticalOptions="Center" />
+                                    <Label Text="Discovery"
+                                           x:Name="NavDiscoveryLabel"
+                                           TextColor="White"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavDiscoveryTapped" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- Search -->
+                            <Border x:Name="NavSearchBorder"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1"
+                                    Padding="12,5"
+                                    ToolTipProperties.Text="Search &amp; Catalog"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.Magnify}"
+                                           FontFamily="MaterialIcons"
+                                           x:Name="NavSearchIcon"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontSize="14"
+                                           VerticalOptions="Center" />
+                                    <Label Text="Search"
+                                           x:Name="NavSearchLabel"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavSearchTapped" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- Downloads Hub -->
+                            <Border x:Name="NavDownloadsBorder"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1"
+                                    Padding="12,5"
+                                    ToolTipProperties.Text="Downloads &amp; Queue Hub"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.Download}"
+                                           FontFamily="MaterialIcons"
+                                           x:Name="NavDownloadsIcon"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontSize="14"
+                                           VerticalOptions="Center" />
+                                    <Label Text="Downloads Hub"
+                                           x:Name="NavDownloadsLabel"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavDownloadsTapped" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- Music Player (Desktop Windows top navigation) -->
+                            <Border x:Name="NavPlayerBorder"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1"
+                                    Padding="12,5"
+                                    ToolTipProperties.Text="Music Player"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.Music}"
+                                           FontFamily="MaterialIcons"
+                                           x:Name="NavPlayerIcon"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontSize="14"
+                                           VerticalOptions="Center" />
+                                    <Label Text="Music Player"
+                                           x:Name="NavPlayerLabel"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavPlayerTapped" />
+                                </Border.GestureRecognizers>
+                            </Border>
+
+                            <!-- Settings -->
+                            <Border x:Name="NavSettingsBorder"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1"
+                                    Padding="12,5"
+                                    ToolTipProperties.Text="Settings &amp; About"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{x:Static helpers:MaterialIcon.Cog}"
+                                           FontFamily="MaterialIcons"
+                                           x:Name="NavSettingsIcon"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontSize="14"
+                                           VerticalOptions="Center" />
+                                    <Label Text="Settings"
+                                           x:Name="NavSettingsLabel"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontAttributes="Bold"
+                                           FontSize="11"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavSettingsTapped" />
+                                </Border.GestureRecognizers>
+                            </Border>
+                        </HorizontalStackLayout>
+                    </ScrollView>
+
+                    <!-- Right: Queue Badge (Windows) -->
+                    <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                        <!-- Queue Badge Pill -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                StrokeThickness="1"
+                                Padding="10,4"
+                                ToolTipProperties.Text="View Queue in Downloads Hub"
+                                VerticalOptions="Center">
+                            <Label x:Name="QueueBadgeLabel"
+                                   Text="Queue: 0 tracks"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   FontSize="10"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnNavDownloadsTapped" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </HorizontalStackLayout>
+                </Grid>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- 2. ANDROID MOBILE APP BAR (Uncluttered, No Overlap)         -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <Grid IsVisible="{OnPlatform WinUI=False, Default=True}"
+                      ColumnDefinitions="Auto, *, Auto"
+                      Padding="14,0,10,0"
+                      VerticalOptions="Center">
+
+                    <!-- Mobile Brand Title with Beta Badge -->
+                    <HorizontalStackLayout Grid.Column="0"
+                                           Spacing="8"
+                                           VerticalOptions="Center">
+                        <Image Source="burudani.png"
+                               WidthRequest="24"
+                               HeightRequest="24"
+                               VerticalOptions="Center" />
+                        <Label Text="Burudani"
+                               TextColor="#ea580c"
+                               FontAttributes="Bold"
+                               FontSize="16"
+                               VerticalOptions="Center" />
+                        <Border BackgroundColor="{AppThemeBinding Light=#fff7ed, Dark=#271d18}"
+                                Stroke="#ea580c"
+                                StrokeThickness="1"
+                                Padding="5,1"
+                                VerticalOptions="Center">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <Label Text="BETA"
+                                   TextColor="#ea580c"
+                                   FontSize="9"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </HorizontalStackLayout>
+
+                   
+                   
+
+                    <!-- Mobile Action Buttons (Right: Settings) -->
+                    <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                        <!-- Settings Icon Button -->
+                      
+                    </HorizontalStackLayout>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ── Primary Pages Stack + Floating Mini-Player (Windows) + Floating Playlists Button (Both Platforms) ── -->
+        <Grid Grid.Row="1">
+            <views:DiscoveryPage x:Name="DiscoveryView" IsVisible="True" />
+            <views:SearchPage x:Name="SearchView" IsVisible="False" />
+            <views:DownloadsPage x:Name="DownloadsView" IsVisible="False" />
+            <views:PlayerPage x:Name="PlayerView" IsVisible="False" />
+            <views:SettingsPage x:Name="SettingsView" IsVisible="False" />
+
+            <!-- Floating Global Mini-Player Bar (Windows only; Android uses the bottom sheet) -->
+            <controls:MiniPlayerBar x:Name="GlobalMiniPlayer"
+                                    VerticalOptions="End"
+                                    HorizontalOptions="Fill"
+                                    Margin="{OnPlatform WinUI='16,0,16,14', Default='10,0,10,8'}"
+                                    IsVisible="{OnPlatform WinUI=True, Default=False}"
+                                    ZIndex="99" />
+
+            <!-- ── GLOBAL FLOATING CIRCULAR PLAYLIST BUTTON (Both Windows & Android) ── -->
+            <Border x:Name="GlobalFloatingPlaylistButton"
+                    WidthRequest="52"
+                    HeightRequest="52"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    Margin="{OnPlatform WinUI='0,0,24,96', Default='0,0,18,88'}"
+                    BackgroundColor="#ea580c"
+                    StrokeThickness="0"
+                    ZIndex="95"
+                    ToolTipProperties.Text="Playlists">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="26" />
+                </Border.StrokeShape>
+                <Border.Shadow>
+                    <Shadow Brush="Black"
+                            Opacity="{AppThemeBinding Light=0.25, Dark=0.55}"
+                            Radius="12"
+                            Offset="0,4" />
+                </Border.Shadow>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnQuickPlaylistsTapped" />
+                </Border.GestureRecognizers>
+                <Label Text="{x:Static helpers:MaterialIcon.PlaylistMusic}"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+        </Grid>
+
+        <!-- ── Android Mobile Bottom Navigation Bar (56dp height, standard Material 3 tab bar) ── -->
+        <Border Grid.Row="2"
+                x:Name="BottomNavBar"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                StrokeThickness="1"
+                HeightRequest="56"
+                Padding="0"
+                IsVisible="{OnPlatform WinUI=False, Default=True}">
+            <Grid ColumnDefinitions="*, *, *">
+
+                <!-- Tab 1: Discovery -->
+                <VerticalStackLayout Grid.Column="0"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="2">
+                    <Label Text="{x:Static helpers:MaterialIcon.Compass}"
+                           FontFamily="MaterialIcons"
+                           x:Name="BottomNavDiscoveryIcon"
+                           TextColor="#ea580c"
+                           FontSize="20"
+                           HorizontalOptions="Center" />
+                    <Label Text="Discovery"
+                           x:Name="BottomNavDiscoveryLabel"
+                           TextColor="#ea580c"
+                           FontSize="10"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnNavDiscoveryTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                </VerticalStackLayout>
+
+                <!-- Tab 2: Search (Centered Between Discovery and Downloads) -->
+                <VerticalStackLayout Grid.Column="1"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="2">
+                    <Label Text="{x:Static helpers:MaterialIcon.Magnify}"
+                           FontFamily="MaterialIcons"
+                           x:Name="BottomNavSearchIcon"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="20"
+                           HorizontalOptions="Center" />
+                    <Label Text="Search"
+                           x:Name="BottomNavSearchLabel"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="10"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnNavSearchTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                </VerticalStackLayout>
+
+                <!-- Tab 3: Downloads -->
+                <VerticalStackLayout Grid.Column="2"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="2">
+                    <Label Text="{x:Static helpers:MaterialIcon.Download}"
+                           FontFamily="MaterialIcons"
+                           x:Name="BottomNavDownloadsIcon"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="20"
+                           HorizontalOptions="Center" />
+                    <Label Text="Downloads"
+                           x:Name="BottomNavDownloadsLabel"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="10"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnNavDownloadsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- ── Android-Only Persistent Fluid Bottom Sheet Player (Spans Full Window) ── -->
+        <!-- Sits above page content & bottom bar; transitions seamlessly into Full Player per reference images -->
+        <Grid Grid.Row="0"
+              Grid.RowSpan="3"
+              x:Name="AndroidPlayerSheet"
+              IsVisible="{OnPlatform WinUI=False, Default=False}"
+              VerticalOptions="End"
+              HorizontalOptions="Fill"
+              HeightRequest="72"
+              Margin="0,0,0,56"
+              ZIndex="999">
+            <Border BackgroundColor="{AppThemeBinding Light=#f8fafc, Dark=#14191d}"
+                    Stroke="{AppThemeBinding Light=#e2e8f0, Dark=#252d33}"
+                    StrokeThickness="1">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22,22,0,0" />
+                </Border.StrokeShape>
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.55" Radius="28" Offset="0,-6" />
+                </Border.Shadow>
+
+                <Grid RowDefinitions="Auto, *">
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- 1. COLLAPSED MINI-BAR HEADER (Shown when collapsed, taps/swipes up) -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <Grid Grid.Row="0"
+                          x:Name="SheetMiniContent"
+                          HeightRequest="68"
+                          Padding="0">
+                        <Grid.GestureRecognizers>
+                            <PanGestureRecognizer PanUpdated="OnAndroidSheetPanUpdated" />
+                            <TapGestureRecognizer Tapped="OnAndroidSheetHandleTapped" />
+                            <SwipeGestureRecognizer Direction="Left" Swiped="OnMiniSwipeLeft" />
+                            <SwipeGestureRecognizer Direction="Right" Swiped="OnMiniSwipeRight" />
+                        </Grid.GestureRecognizers>
+
+                        <!-- Main Content Row -->
+                        <Grid ColumnDefinitions="Auto, *, Auto"
+                              ColumnSpacing="12"
+                              Padding="14,6,16,8"
+                              VerticalOptions="Center">
+
+                            <!-- Mini Artwork -->
+                            <Border Grid.Column="0"
+                                    WidthRequest="46"
+                                    HeightRequest="46"
+                                    BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#1c2227}"
+                                    StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <controls:ArtworkView x:Name="SheetMiniArtwork"
+                                                      ArtworkUrl="{Binding CurrentTrack.ThumbnailUrl}"
+                                                      CornerRadiusValue="8" />
+                            </Border>
+
+                            <!-- Mini Track Title & Artist -->
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding CurrentTrack.Title, FallbackValue='No track playing'}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1" />
+                                <Label Text="{Binding CurrentTrack.Artist, FallbackValue='Select a song'}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                       FontSize="12"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1" />
+                            </VerticalStackLayout>
+
+                            <!-- Mini Play/Pause Button (Clean minimalist white icon on right end) -->
+                            <Button Grid.Column="2"
+                                    Text="{Binding IsPlaying, Converter={StaticResource PlayPauseIconConverter}}"
+                                    FontFamily="MaterialIcons"
+                                    FontSize="26"
+                                    Clicked="OnSheetPlayPauseClicked"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    Padding="0"
+                                    VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Mini Headless Real-Time Progress Bar across the bottom -->
+                        <BoxView x:Name="SheetMiniProgressTrack"
+                                 HeightRequest="2"
+                                 Color="{AppThemeBinding Light=#e2e8f0, Dark=#27272a}"
+                                 VerticalOptions="End"
+                                 HorizontalOptions="Fill" />
+                        <BoxView x:Name="SheetMiniProgressFill"
+                                 HeightRequest="2"
+                                 Color="#ea580c"
+                                 VerticalOptions="End"
+                                 HorizontalOptions="Start"
+                                 WidthRequest="0" />
+                    </Grid>
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- 2. EXPANDED PANELS (Queue & Full Dome Player - Images 1, 2, 3) -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <Grid Grid.Row="1"
+                          x:Name="SheetExpandedContent"
+                          Opacity="0"
+                          IsVisible="False">
+                        
+                        <!-- Swipe/Pan recognizer on container -->
+                        <Grid.GestureRecognizers>
+                            <PanGestureRecognizer PanUpdated="OnAndroidSheetPanUpdated" />
+                        </Grid.GestureRecognizers>
+
+                        <ScrollView x:Name="SheetScrollContent" VerticalScrollBarVisibility="Never">
+                            <VerticalStackLayout Spacing="0" Padding="0,0,0,24">
+
+                                <!-- Drag Handle Pill -->
+                                <Grid HeightRequest="20" HorizontalOptions="Fill">
+                                    <BoxView WidthRequest="36"
+                                             HeightRequest="4"
+                                             Color="{AppThemeBinding Light=#94a3b8, Dark=#4b5563}"
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Center"
+                                             CornerRadius="2" />
+                                </Grid>
+
+                                <!-- ── FULL PLAYER TOP BAR (Image 3: Down Chevron, Capsule Toggle, 3-Dots) ── -->
+                                <Grid x:Name="FullPlayerTopBar"
+                                      ColumnDefinitions="Auto, *, Auto"
+                                      Padding="18,4,18,12"
+                                      VerticalOptions="Center">
+                                    
+                                    <!-- Collapse Down Chevron Button ⌵ -->
+                                    <Button Grid.Column="0"
+                                            Text="⌵"
+                                            FontSize="22"
+                                            FontAttributes="Bold"
+                                            Clicked="OnSheetCollapseClicked"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                            WidthRequest="38" HeightRequest="38" Padding="0" />
+
+                                    <!-- Center Capsule Switcher: [🎧 Audio] [▶ Video] -->
+                                    <Border Grid.Column="1"
+                                            HorizontalOptions="Center"
+                                            BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#22292f}"
+                                            StrokeThickness="0"
+                                            Padding="4,2">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <HorizontalStackLayout Spacing="2">
+                                            <Border x:Name="CapsuleAudioBorder"
+                                                    BackgroundColor="{AppThemeBinding Light=White, Dark=#353f47}"
+                                                    Padding="12,4"
+                                                    StrokeThickness="0">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="14" />
+                                                </Border.StrokeShape>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnCapsuleAudioTapped" />
+                                                </Border.GestureRecognizers>
+                                                <Label x:Name="CapsuleAudioLabel" Text="🎧" FontSize="13" TextColor="White" />
+                                            </Border>
+                                            <Border x:Name="CapsuleVideoBorder"
+                                                    BackgroundColor="Transparent"
+                                                    Padding="12,4"
+                                                    StrokeThickness="0">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="14" />
+                                                </Border.StrokeShape>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnCapsuleVideoTapped" />
+                                                </Border.GestureRecognizers>
+                                                <Label x:Name="CapsuleVideoLabel" Text="▶" FontSize="12" TextColor="{AppThemeBinding Light=#64748b, Dark=#9ca3af}" />
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                    </Border>
+
+                                    <!-- 3-Dots Menu ⋮ -->
+                                    <Button Grid.Column="2"
+                                            Text="⋮"
+                                            FontSize="22"
+                                            FontAttributes="Bold"
+                                            Clicked="OnSheetMenuClicked"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                            WidthRequest="38" HeightRequest="38" Padding="0" />
+                                </Grid>
+
+                                <!-- ── FULL PLAYER DOME ARTWORK (Image 3) ── -->
+                                <Grid x:Name="SheetLargeArtwork"
+                                      HorizontalOptions="Center"
+                                      Margin="20,4,20,16">
+                                    <Border WidthRequest="290"
+                                            HeightRequest="290"
+                                            BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#1b242a}"
+                                            StrokeThickness="0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="145" />
+                                        </Border.StrokeShape>
+                                        <Border.Shadow>
+                                            <Shadow Brush="Black" Opacity="0.45" Radius="24" Offset="0,10" />
+                                        </Border.Shadow>
+                                        <controls:ArtworkView x:Name="SheetFullArtwork"
+                                                              ArtworkUrl="{Binding CurrentTrack.ThumbnailUrl}"
+                                                              CornerRadiusValue="145" />
+                                    </Border>
+                                </Grid>
+
+                                <!-- ── FULL PLAYER TRACK TITLE & ARTIST (Image 3) ── -->
+                                <VerticalStackLayout x:Name="SheetFullTrackInfo"
+                                                     Spacing="4"
+                                                     HorizontalOptions="Center"
+                                                     Margin="24,0,24,14">
+                                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
+                                        <Label Text="{Binding CurrentTrack.Title, FallbackValue='No track selected'}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                               FontAttributes="Bold"
+                                               FontSize="22"
+                                               HorizontalOptions="Center"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1" />
+                                        <Label Text="›"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                               FontAttributes="Bold"
+                                               FontSize="22"
+                                               VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding CurrentTrack.Artist, FallbackValue=''}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                           FontSize="15"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+
+                                <!-- ── FULL PLAYER SEEK BAR & TIMESTAMPS (Image 3: Sleek white line seek bar) ── -->
+                                <Grid x:Name="SheetSeekContainer" Padding="24,0,24,12" RowDefinitions="Auto, Auto">
+                                    <!-- Sleek white track -->
+                                    <Border Grid.Row="0"
+                                            x:Name="SheetSeekTrack"
+                                            HeightRequest="4"
+                                            BackgroundColor="{AppThemeBinding Light=#cbd5e1, Dark=#40ffffff}"
+                                            StrokeThickness="0"
+                                            Padding="0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="2" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnSheetSeekTapped" />
+                                            <PanGestureRecognizer PanUpdated="OnSheetSeekPanUpdated" />
+                                        </Border.GestureRecognizers>
+                                        <Grid HorizontalOptions="Fill">
+                                            <BoxView x:Name="SheetSeekFill"
+                                                     Color="White"
+                                                     HorizontalOptions="Start"
+                                                     WidthRequest="0" />
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Timestamps: 0:40 on left, 2:54 on right -->
+                                    <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,6,0,0">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Position, StringFormat='{0:m\\:ss}'}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                               FontSize="11" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Duration, StringFormat='{0:m\\:ss}'}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                               FontSize="11"
+                                               HorizontalOptions="End" />
+                                    </Grid>
+                                </Grid>
+
+                                <!-- ── FULL PLAYER TRANSPORT CONTROLS (Image 3) ── -->
+                                <!-- Shuffle | Prev | BIG WHITE CIRCULAR PLAY BUTTON | Next | Repeat -->
+                                <Grid x:Name="SheetTransportControls"
+                                      ColumnDefinitions="Auto, Auto, Auto, Auto, Auto"
+                                      ColumnSpacing="18"
+                                      HorizontalOptions="Center"
+                                      Margin="0,4,0,20">
+                                    
+                                    <!-- Shuffle -->
+                                    <Button Grid.Column="0"
+                                            Text="{x:Static helpers:MaterialIcon.Shuffle}"
+                                            FontFamily="MaterialIcons"
+                                            Clicked="OnSheetShuffleClicked"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                            FontSize="22" WidthRequest="42" HeightRequest="42" Padding="0" />
+
+                                    <!-- Skip Previous -->
+                                    <Button Grid.Column="1"
+                                            Text="{x:Static helpers:MaterialIcon.SkipPrevious}"
+                                            FontFamily="MaterialIcons"
+                                            Clicked="OnSheetPrevClicked"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                            FontSize="28" WidthRequest="46" HeightRequest="46" Padding="0" />
+
+                                    <!-- Big White Circular Play/Pause Button (Image 3) -->
+                                    <Button Grid.Column="2"
+                                            Text="{Binding IsPlaying, Converter={StaticResource PlayPauseIconConverter}}"
+                                            FontFamily="MaterialIcons"
+                                            Clicked="OnSheetPlayPauseClicked"
+                                            BackgroundColor="White"
+                                            TextColor="Black"
+                                            FontSize="30"
+                                            WidthRequest="64"
+                                            HeightRequest="64"
+                                            CornerRadius="32"
+                                            Padding="0">
+                                        <Button.Shadow>
+                                            <Shadow Brush="Black" Opacity="0.3" Radius="12" Offset="0,4" />
+                                        </Button.Shadow>
+                                    </Button>
+
+                                    <!-- Skip Next -->
+                                    <Button Grid.Column="3"
+                                            Text="{x:Static helpers:MaterialIcon.SkipNext}"
+                                            FontFamily="MaterialIcons"
+                                            Clicked="OnSheetNextClicked"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                            FontSize="28" WidthRequest="46" HeightRequest="46" Padding="0" />
+
+                                    <!-- Repeat -->
+                                    <Button Grid.Column="4"
+                                            Text="{x:Static helpers:MaterialIcon.Repeat}"
+                                            FontFamily="MaterialIcons"
+                                            Clicked="OnSheetRepeatClicked"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                            FontSize="22" WidthRequest="42" HeightRequest="42" Padding="0" />
+                                </Grid>
+
+                                <!-- ── QUEUE HEADER & "PLAYING FROM" SECTION (Images 1, 2 & 3) ── -->
+                                <Grid Margin="20,4,20,10" ColumnDefinitions="*, Auto" x:Name="SheetQueueHeader">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="Playing from"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                               FontSize="11" />
+                                        <Label Text="{Binding CurrentTrack.Album, FallbackValue='Queue Mix'}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                               FontAttributes="Bold"
+                                               FontSize="15" />
+                                    </VerticalStackLayout>
+
+                                    <!-- + Save Pill Button (Images 1 & 2) -->
+                                    <Border Grid.Column="1"
+                                            BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#262d33}"
+                                            Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#38434b}"
+                                            StrokeThickness="1"
+                                            Padding="14,6"
+                                            VerticalOptions="Center">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="16" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnSheetSaveClicked" />
+                                        </Border.GestureRecognizers>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="+" TextColor="White" FontSize="14" FontAttributes="Bold" />
+                                            <Label Text="Save" TextColor="White" FontSize="12" FontAttributes="Bold" />
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </Grid>
+
+                                <!-- ── CURRENTLY PLAYING HIGHLIGHTED CARD (Images 1 & 2) ── -->
+                                <Border BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#263339}"
+                                        Stroke="{AppThemeBinding Light=#cbd5e1, Dark=#33454d}"
+                                        StrokeThickness="1"
+                                        Padding="12,8"
+                                        Margin="16,0,16,12">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="42, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                        <Grid Grid.Column="0" WidthRequest="40" HeightRequest="40">
+                                            <controls:ArtworkView ArtworkUrl="{Binding CurrentTrack.ThumbnailUrl}"
+                                                                  CornerRadiusValue="6" />
+                                            <!-- Equalizer animated bars overlay ılı -->
+                                            <Label Text="ılı"
+                                                   TextColor="White"
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   HorizontalOptions="Center"
+                                                   VerticalOptions="End"
+                                                   Margin="0,0,0,2" />
+                                        </Grid>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                            <Label Text="{Binding CurrentTrack.Title}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                                   FontSize="13" FontAttributes="Bold"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding CurrentTrack.Artist, StringFormat='{0} • Now Playing'}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                                   FontSize="11"
+                                                   LineBreakMode="TailTruncation" />
+                                        </VerticalStackLayout>
+                                        <!-- Reorder drag handle icon ≡ -->
+                                        <Label Grid.Column="2"
+                                               Text="≡"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#6b7280}"
+                                               FontSize="20"
+                                               FontAttributes="Bold"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+
+                                <!-- ── QUEUE TRACKS LIST (Images 1 & 2) ── -->
+                                <VerticalStackLayout x:Name="SheetQueueList"
+                                                     Spacing="4"
+                                                     Margin="16,0,16,24"
+                                                     BindableLayout.ItemsSource="{Binding Playlist}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:TrackItem">
+                                            <Border BackgroundColor="Transparent"
+                                                    StrokeThickness="0"
+                                                    Padding="4,6"
+                                                    Margin="0,2">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnQueueTrackTapped" />
+                                                </Border.GestureRecognizers>
+                                                <Grid ColumnDefinitions="42, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                                    <!-- Artwork -->
+                                                    <controls:ArtworkView Grid.Column="0"
+                                                                          WidthRequest="40" HeightRequest="40"
+                                                                          ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                          CornerRadiusValue="6" />
+
+                                                    <!-- Title & Artist • Duration -->
+                                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                                        <Label Text="{Binding Title}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                                               FontSize="13" FontAttributes="Bold"
+                                                               LineBreakMode="TailTruncation" />
+                                                        <HorizontalStackLayout Spacing="4">
+                                                            <Label Text="{Binding Artist}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                                                   FontSize="11"
+                                                                   LineBreakMode="TailTruncation" />
+                                                            <Label Text="•"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#6b7280}"
+                                                                   FontSize="11" />
+                                                            <Label Text="{Binding DurationStr, FallbackValue='--:--'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#9ca3af}"
+                                                                   FontSize="11" />
+                                                        </HorizontalStackLayout>
+                                                    </VerticalStackLayout>
+
+                                                    <!-- Two horizontal drag lines icon ≡ (Images 1 & 2) -->
+                                                    <Label Grid.Column="2"
+                                                           Text="≡"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#6b7280}"
+                                                           FontSize="20"
+                                                           FontAttributes="Bold"
+                                                           VerticalOptions="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </ScrollView>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ── CUSTOM THEMED POPUP DIALOG OVERLAY (Replaces all generic system dialogs) ── -->
+        <Grid Grid.RowSpan="3"
+              x:Name="DialogOverlay"
+              IsVisible="False"
+              BackgroundColor="#a6000000"
+              ZIndex="9999"
+              Padding="24">
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    MaximumWidthRequest="400"
+                    MaximumHeightRequest="520"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20" />
+                </Border.StrokeShape>
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.4" Radius="24" Offset="0,8" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="14">
+                    <!-- Title & Header -->
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label x:Name="DialogTitleLabel"
+                               Text="Select Option"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Clicked="OnDialogCancelClicked"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                FontSize="14"
+                                WidthRequest="32"
+                                HeightRequest="32"
+                                Padding="0" />
+                    </Grid>
+
+                    <!-- Optional Message -->
+                    <Label x:Name="DialogMessageLabel"
+                           Text=""
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="12"
+                           IsVisible="False" />
+
+                    <!-- Prompt Input Field -->
+                    <Border x:Name="DialogInputBorder"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="10,0"
+                            HeightRequest="42"
+                            IsVisible="False">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Entry x:Name="DialogInputEntry"
+                               Placeholder="Enter value..."
+                               PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               FontSize="13"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Options List (Scrollable) -->
+                    <ScrollView x:Name="DialogOptionsScroll"
+                                MaximumHeightRequest="320"
+                                IsVisible="False">
+                        <VerticalStackLayout x:Name="DialogOptionsList" Spacing="6" />
+                    </ScrollView>
+
+                    <!-- Action Buttons -->
+                    <Grid x:Name="DialogButtonsGrid"
+                          ColumnDefinitions="*, *"
+                          ColumnSpacing="10"
+                          Margin="0,6,0,0">
+                       
+                        <Button x:Name="DialogConfirmButton"
+                                Grid.Column="1"
+                                Text="Confirm"
+                                Clicked="OnDialogConfirmClicked"
+                                BackgroundColor="#ea580c"
+                                TextColor="White"
+                                HeightRequest="38"
+                                CornerRadius="8"
+                                FontSize="12"
+                                FontAttributes="Bold" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

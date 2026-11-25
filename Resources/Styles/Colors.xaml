@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Burudani Signature Brand Colors -->
+    <Color x:Key="Primary">#ea580c</Color>
+    <Color x:Key="PrimaryLight">#f97316</Color>
+    <Color x:Key="PrimaryDark">#c2410c</Color>
+    <Color x:Key="PrimaryDarkText">#FFFFFF</Color>
+
+    <Color x:Key="Secondary">#27272a</Color>
+    <Color x:Key="SecondaryDarkText">#f4f4f5</Color>
+    <Color x:Key="Tertiary">#3f3f46</Color>
+
+    <!-- Compatibility Aliases for Default MAUI Styles.xaml -->
+    <Color x:Key="MidnightBlue">#18181b</Color>
+    <Color x:Key="OffBlack">#09090b</Color>
+    <Color x:Key="Magenta">#ea580c</Color>
+
+    <!-- Dynamic Dark & Light Theme Color Palettes -->
+    <Color x:Key="AppBackgroundDark">#09090b</Color>
+    <Color x:Key="AppBackgroundLight">#f8fafc</Color>
+
+    <Color x:Key="SurfaceBackgroundDark">#141418</Color>
+    <Color x:Key="SurfaceBackgroundLight">#ffffff</Color>
+
+    <Color x:Key="CardBackgroundDark">#18181d</Color>
+    <Color x:Key="CardBackgroundLight">#ffffff</Color>
+
+    <Color x:Key="CardBorderDark">#27272a</Color>
+    <Color x:Key="CardBorderLight">#e2e8f0</Color>
+
+    <Color x:Key="TextPrimaryDark">#f4f4f5</Color>
+    <Color x:Key="TextPrimaryLight">#0f172a</Color>
+
+    <Color x:Key="TextSecondaryDark">#94a3b8</Color>
+    <Color x:Key="TextSecondaryLight">#64748b</Color>
+
+    <Color x:Key="InputBackgroundDark">#1c1c22</Color>
+    <Color x:Key="InputBackgroundLight">#f1f5f9</Color>
+
+    <Color x:Key="CardHoverDark">#22222a</Color>
+    <Color x:Key="CardHoverLight">#f1f5f9</Color>
+
+    <!-- Legacy / Compatibility Colors -->
+    <Color x:Key="AppBackground">#09090b</Color>
+    <Color x:Key="SurfaceBackground">#141418</Color>
+    <Color x:Key="CardBackground">#18181d</Color>
+    <Color x:Key="BorderColor">#3f3f46</Color>
+    <Color x:Key="TextPrimary">#f4f4f5</Color>
+    <Color x:Key="TextSecondary">#94a3b8</Color>
+    <Color x:Key="SuccessGreen">#22c55e</Color>
+
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#000000</Color>
+
+    <Color x:Key="Gray100">#E1E1E1</Color>
+    <Color x:Key="Gray200">#C8C8C8</Color>
+    <Color x:Key="Gray300">#ACACAC</Color>
+    <Color x:Key="Gray400">#919191</Color>
+    <Color x:Key="Gray500">#6E6E6E</Color>
+    <Color x:Key="Gray600">#404040</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    <Color x:Key="Gray950">#141414</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLight}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackground}"/>
+    <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="{StaticResource SurfaceBackground}"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackground}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+</ResourceDictionary>

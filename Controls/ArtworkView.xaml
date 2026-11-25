@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Burudani.Controls.ArtworkView">
+    <Border x:Name="ContainerBorder"
+            BackgroundColor="#18181d"
+            Stroke="#2d2d34"
+            StrokeThickness="1">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="8" />
+        </Border.StrokeShape>
+        <Grid>
+            <!-- Placeholder icon -->
+            <Label x:Name="PlaceholderLabel"
+                   Text="♫"
+                   TextColor="#ea580c"
+                   FontSize="24"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <!-- Artwork image -->
+            <Image x:Name="ArtImage"
+                   Aspect="AspectFill"
+                   IsVisible="False"
+                   HorizontalOptions="Fill"
+                   VerticalOptions="Fill" />
+        </Grid>
+    </Border>
+</ContentView>

@@ -1,0 +1,33 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:Burudani"
+             xmlns:conv="clr-namespace:Burudani.Converters"
+             x:Class="Burudani.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global Value Converters -->
+            <conv:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <conv:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <conv:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
+            <conv:PlayPauseIconConverter x:Key="PlayPauseIconConverter" />
+            <conv:StatusToColorConverter x:Key="StatusToColorConverter" />
+            <conv:EqualToBoolConverter x:Key="EqualToBoolConverter" />
+            <conv:EqualToColorConverter x:Key="EqualToColorConverter" />
+            <conv:EqualToTextColorConverter x:Key="EqualToTextColorConverter" />
+            <conv:IntEqualToColorConverter x:Key="IntEqualToColorConverter" />
+            <conv:IntEqualToTextColorConverter x:Key="IntEqualToTextColorConverter" />
+            <conv:RepeatModeIconConverter x:Key="RepeatModeIconConverter" />
+            <conv:RepeatModeColorConverter x:Key="RepeatModeColorConverter" />
+            <conv:GenreBgConverter x:Key="GenreBgConverter" />
+            <conv:GenreStrokeConverter x:Key="GenreStrokeConverter" />
+            <conv:GenreTextConverter x:Key="GenreTextConverter" />
+            <conv:VolumeIconConverter x:Key="VolumeIconConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

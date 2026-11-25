@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Burudani.ViewModels"
+             xmlns:models="clr-namespace:Burudani.Models"
+             xmlns:controls="clr-namespace:Burudani.Controls"
+             xmlns:helpers="clr-namespace:Burudani.Helpers"
+             x:Class="Burudani.Views.DiscoveryPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource AppBackgroundLight}, Dark={StaticResource AppBackgroundDark}}">
+
+    <ContentView.BindingContext>
+        <vm:DiscoveryViewModel x:Name="ViewModel" />
+    </ContentView.BindingContext>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- ── Top Header Panel: Region + Genre Selector Pills ── -->
+        <Border Grid.Row="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                StrokeThickness="1"
+                Padding="16,10">
+            <VerticalStackLayout Spacing="10">
+                <!-- Top Row: Title + Region Pill -->
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    
+
+                    <!-- Region Selector Pill -->
+                    <Border Grid.Column="1"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            HeightRequest="32"
+                            Padding="10,0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <Label Text="{x:Static helpers:MaterialIcon.Earth}"
+                                   FontFamily="MaterialIcons"
+                                   TextColor="#ea580c"
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                            <Label Text="{Binding CurrentRegion.Value}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="11"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                            <Label Text="▾"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   FontSize="10"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ChooseRegionCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </Grid>
+
+                <!-- Genre Selector Pills Bar -->
+                <ScrollView Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Genres}"
+                                           Spacing="8"
+                                           Padding="0,2">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:GenreItem">
+                                <Border StrokeShape="RoundRectangle 14"
+                                        StrokeThickness="1"
+                                        Padding="14,6"
+                                        BackgroundColor="{Binding IsSelected, Converter={StaticResource GenreBgConverter}}"
+                                        Stroke="{Binding IsSelected, Converter={StaticResource GenreStrokeConverter}}">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="11"
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding IsSelected, Converter={StaticResource GenreTextConverter}}"
+                                           VerticalOptions="Center" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DiscoveryViewModel}}, Path=SelectGenreCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ── Main Content Area (Incremental Virtualized Grid) ── -->
+        <Grid Grid.Row="1">
+            <!-- 1. Offline State (Standard No Internet Connection Icon in Center) -->
+            <VerticalStackLayout IsVisible="{Binding IsOffline}"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="14"
+                                 Margin="20">
+                <Label Text="{x:Static helpers:MaterialIcon.Web}"
+                       FontFamily="MaterialIcons"
+                       FontSize="48"
+                       TextColor="{AppThemeBinding Light=#94a3b8, Dark=#71717a}"
+                       HorizontalOptions="Center" />
+                <Label Text="No Internet Connection"
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label Text="{Binding StatusMessage}"
+                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                       FontSize="12"
+                       HorizontalTextAlignment="Center"
+                       HorizontalOptions="Center" />
+                <!-- Refresh Button for Windows -->
+                <Button Text="Refresh"
+                        IsVisible="{OnPlatform WinUI=True, Default=False}"
+                        Command="{Binding RefreshCommand}"
+                        BackgroundColor="#ea580c"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="36"
+                        Padding="24,0"
+                        HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- 2. Transparent Lottie Activity Loader -->
+            <controls:LottieLoaderView IsVisible="{Binding IsLoading}"
+                                       StatusMessage="{Binding StatusMessage}" />
+
+            <!-- 3. Virtualized & Paginated Trending Tracks Collection (with Android Pull-to-Refresh) -->
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefreshCommand}"
+                         IsVisible="{Binding IsContentVisible}">
+                <Grid Padding="16,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Status / Count Header -->
+                <Label Grid.Row="0"
+                       Text="{Binding StatusMessage}"
+                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       Margin="0,0,0,10" />
+
+                <!-- Incremental Virtualized CollectionView -->
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding DisplayedTracks}"
+                                ItemSizingStrategy="MeasureFirstItem"
+                                RemainingItemsThreshold="4"
+                                RemainingItemsThresholdReachedCommand="{Binding LoadMoreItemsCommand}">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical"
+                                         Span="{OnPlatform WinUI=4, Default=2}"
+                                         HorizontalItemSpacing="12"
+                                         VerticalItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:TrackItem">
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                    StrokeThickness="1"
+                                    Padding="10">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <VerticalStackLayout Spacing="8">
+                                    <!-- Artwork Container with Dynamic Contrast-Adaptive Action Buttons -->
+                                    <Grid HeightRequest="136">
+                                        <controls:ArtworkView HeightRequest="136"
+                                                              ArtworkUrl="{Binding ThumbnailUrl}"
+                                                              CacheKey="{Binding Id}"
+                                                              CornerRadiusValue="8" />
+
+                                        <!-- Dynamic Contrast-Adaptive Play Button -->
+                                        <Border BackgroundColor="{Binding OverlayPlayBg}"
+                                                Stroke="{Binding OverlayPlayBorder}"
+                                                StrokeThickness="1"
+                                                WidthRequest="46"
+                                                HeightRequest="46"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="23" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DiscoveryViewModel}}, Path=PlayTrackCommand}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="{x:Static helpers:MaterialIcon.Play}"
+                                                   FontFamily="MaterialIcons"
+                                                   FontSize="22"
+                                                   TextColor="{Binding OverlayPlayIcon}"
+                                                   HorizontalOptions="Center"
+                                                   VerticalOptions="Center" />
+                                        </Border>
+
+                                        <!-- Dynamic Contrast-Adaptive Download Button -->
+                                        <Border BackgroundColor="{Binding OverlayDownloadBg}"
+                                                StrokeThickness="0"
+                                                WidthRequest="32"
+                                                HeightRequest="32"
+                                                HorizontalOptions="End"
+                                                VerticalOptions="Start"
+                                                Margin="6">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="16" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DiscoveryViewModel}}, Path=QueueTrackCommand}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Label Text="{x:Static helpers:MaterialIcon.Download}"
+                                                   FontFamily="MaterialIcons"
+                                                   FontSize="15"
+                                                   TextColor="{Binding OverlayDownloadIcon}"
+                                                   HorizontalOptions="Center"
+                                                   VerticalOptions="Center" />
+                                        </Border>
+
+                                        <!-- Duration Badge (Bottom-Right) -->
+                                        <Border HorizontalOptions="End"
+                                                VerticalOptions="End"
+                                                Margin="6"
+                                                BackgroundColor="#b3000000"
+                                                Padding="6,2"
+                                                StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="4" />
+                                            </Border.StrokeShape>
+                                            <Label Text="{Binding DurationStr}"
+                                                   TextColor="White"
+                                                   FontSize="10"
+                                                   FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Song Title & Artist -->
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Title}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                               FontAttributes="Bold"
+                                               FontSize="13"
+                                               MaxLines="1"
+                                               LineBreakMode="TailTruncation" />
+
+                                        <Label Text="{Binding Artist}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                               FontSize="11"
+                                               MaxLines="1"
+                                               LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Incremental Loading Indicator Footer -->
+                <ActivityIndicator Grid.Row="2"
+                                   IsRunning="{Binding IsLoadingMore}"
+                                   IsVisible="{Binding IsLoadingMore}"
+                                   Color="#ea580c"
+                                   WidthRequest="24"
+                                   HeightRequest="24"
+                                   HorizontalOptions="Center"
+                                   Margin="0,8,0,0" />
+            </Grid>
+            </RefreshView>
+        </Grid>
+    </Grid>
+</ContentView>

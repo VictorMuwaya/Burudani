@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Burudani.ViewModels"
+             xmlns:models="clr-namespace:Burudani.Models"
+             xmlns:controls="clr-namespace:Burudani.Controls"
+             xmlns:helpers="clr-namespace:Burudani.Helpers"
+             x:Class="Burudani.Views.DownloadsPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource AppBackgroundLight}, Dark={StaticResource AppBackgroundDark}}">
+
+    <ContentView.BindingContext>
+        <vm:DownloadsViewModel x:Name="ViewModel" />
+    </ContentView.BindingContext>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- ── Top Action & Location Bar ── -->
+        <Border Grid.Row="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                StrokeThickness="1"
+                Padding="16,10">
+            <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                    <Label Text="Downloads Hub"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="{Binding DownloadFolder}"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="11"
+                           LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+
+                <Button Grid.Column="1"
+                        Text="Open Folder"
+                        Command="{Binding OpenDownloadFolderCommand}"
+                        ToolTipProperties.Text="Open Download Directory in File Explorer"
+                        IsVisible="{OnPlatform WinUI=True, Default=False}"
+                        BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#24242a}"
+                        TextColor="{AppThemeBinding Light=#1e293b, Dark=#f4f4f5}"
+                        BorderColor="{AppThemeBinding Light=#cbd5e1, Dark=#3f3f46}"
+                        BorderWidth="1"
+                        HeightRequest="32"
+                        CornerRadius="4"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        Padding="12,0" />
+
+                <!-- Mobile Only Tab Switcher (Queue vs History) -->
+                <Border Grid.Column="2"
+                        StrokeShape="RoundRectangle 10"
+                        BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#1c1c22}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                        Padding="4"
+                        HeightRequest="35"
+                        IsVisible="{OnPlatform Default=True, WinUI=False}">
+                    <HorizontalStackLayout Spacing="2">
+                        <Button Text="Queue"
+                                Clicked="OnMobileQueueTabClicked"
+                                BackgroundColor="{Binding MobileTabSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter=0}"
+                                TextColor="White"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                HeightRequest="25"               
+                                Padding="10,0"
+                                CornerRadius="4" />
+                        <Button Text="History"
+                                Clicked="OnMobileHistoryTabClicked"
+                                BackgroundColor="{Binding MobileTabSelected, Converter={StaticResource BoolToColorConverter}, ConverterParameter=1}"
+                                TextColor="White"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                HeightRequest="28"
+                                Padding="10,0"
+                                CornerRadius="4" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ── Main Dual-Panel Content Area ── -->
+        <Grid Grid.Row="1" Padding="14">
+            
+            <!-- ── DESKTOP (WINDOWS): TWO COLUMNS SIDE-BY-SIDE ── -->
+            <Grid ColumnDefinitions="*, *"
+                  ColumnSpacing="14"
+                  IsVisible="{OnPlatform WinUI=True, Default=False}">
+
+                <!-- ── LEFT PANEL: ACTIVE DOWNLOAD QUEUE ── -->
+                <Border Grid.Column="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                        StrokeThickness="1"
+                        Padding="14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <Grid RowDefinitions="Auto, Auto, *, Auto" RowSpacing="10">
+                        <!-- Header -->
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Grid.Column="0"
+                                   Text="{x:Static helpers:MaterialIcon.TrayFull}"
+                                   FontFamily="MaterialIcons"
+                                   FontSize="18"
+                                   TextColor="#ea580c"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding QueueItems.Count, StringFormat='Active Queue ({0} tracks)'}"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="2"
+                                    Text="Clear Queue"
+                                    Command="{Binding ClearQueueCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#24242a}"
+                                    TextColor="{AppThemeBinding Light=#475569, Dark=#94a3b8}"
+                                    FontSize="11"
+                                    HeightRequest="26"
+                                    Padding="10,0"
+                                    CornerRadius="4" />
+                        </Grid>
+
+                        <!-- Batch progress card (visible when downloads active) -->
+                        <Border Grid.Row="1"
+                                BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#18181b}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark=#3f3f46}"
+                                StrokeThickness="1"
+                                Padding="10"
+                                IsVisible="{Binding HasQueueItems}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <Label Grid.Column="0"
+                                           Text="Batch Transfer Status"
+                                           TextColor="#ea580c"
+                                           FontAttributes="Bold"
+                                           FontSize="11" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding OverallSpeed}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                           FontSize="11"
+                                           FontAttributes="Bold" />
+                                </Grid>
+                                <ProgressBar Progress="{Binding OverallProgressFraction}"
+                                             ProgressColor="#ea580c"
+                                             BackgroundColor="{AppThemeBinding Light=#cbd5e1, Dark=#27272a}"
+                                             HeightRequest="5" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Queue Items List -->
+                        <ScrollView Grid.Row="2">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="No tracks currently in queue. Stage songs from Explorer."
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       FontSize="12"
+                                       IsVisible="{Binding HasQueueItems, Converter={StaticResource InvertedBoolConverter}}"
+                                       Margin="0,20,0,0"
+                                       HorizontalOptions="Center" />
+
+                                <CollectionView ItemsSource="{Binding QueueItems}"
+                                                IsVisible="{Binding HasQueueItems}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:TrackItem">
+                                            <Border BackgroundColor="{AppThemeBinding Light=#ffffff, Dark=#18181b}"
+                                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                                    StrokeThickness="1"
+                                                    Padding="10,8"
+                                                    Margin="0,2">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="6" />
+                                                </Border.StrokeShape>
+                                                <VerticalStackLayout Spacing="6">
+                                                    <Grid ColumnDefinitions="36, *, Auto, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                                        <controls:ArtworkView Grid.Column="0"
+                                                                              WidthRequest="36"
+                                                                              HeightRequest="36"
+                                                                              ArtworkUrl="{Binding ThumbnailUrl}"
+                                                                              CacheKey="{Binding Id}"
+                                                                              CornerRadiusValue="4" />
+
+                                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                                            <Label Text="{Binding Title}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                                                   FontAttributes="Bold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation" />
+                                                            <Label Text="{Binding Artist}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation" />
+                                                        </VerticalStackLayout>
+
+                                                        <!-- Status Pill -->
+                                                        <Border Grid.Column="2"
+                                                                BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#121216}"
+                                                                Stroke="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
+                                                                StrokeThickness="1"
+                                                                Padding="8,2"
+                                                                VerticalOptions="Center">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="10" />
+                                                            </Border.StrokeShape>
+                                                            <Label Text="{Binding Status}"
+                                                                   TextColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
+                                                                   FontSize="10"
+                                                                   FontAttributes="Bold" />
+                                                        </Border>
+
+                                                        <!-- Remove / Cancel Button -->
+                                                        <Button Grid.Column="3"
+                                                                Text="{x:Static helpers:MaterialIcon.Close}"
+                                                                FontFamily="MaterialIcons"
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DownloadsViewModel}}, Path=RemoveQueueItemCommand}"
+                                                                CommandParameter="{Binding .}"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                                WidthRequest="28"
+                                                                HeightRequest="28"
+                                                                Padding="0" />
+                                                    </Grid>
+
+                                                    <!-- Individual Progress Bar -->
+                                                    <VerticalStackLayout Spacing="2"
+                                                                         IsVisible="{Binding IsDownloading}">
+                                                        <ProgressBar Progress="{Binding ProgressFraction}"
+                                                                     ProgressColor="#ea580c"
+                                                                     BackgroundColor="{AppThemeBinding Light=#cbd5e1, Dark=#27272a}"
+                                                                     HeightRequest="3" />
+                                                        <Grid ColumnDefinitions="*, Auto">
+                                                            <Label Grid.Column="0"
+                                                                   Text="{Binding SpeedStr}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                                   FontSize="10" />
+                                                            <Label Grid.Column="1"
+                                                                   Text="{Binding EtaStr, StringFormat='ETA: {0}'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                                   FontSize="10" />
+                                                        </Grid>
+                                                    </VerticalStackLayout>
+
+                                                    <Label Text="{Binding ErrorMessage}"
+                                                           TextColor="#ef4444"
+                                                           FontSize="10"
+                                                           IsVisible="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToBoolConverter}}" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </ScrollView>
+
+                        <!-- Bottom Action Buttons -->
+                        <Grid Grid.Row="3" ColumnDefinitions="Auto, Auto, *" ColumnSpacing="8">
+                            <Button Grid.Column="0"
+                                    Text="Cancel"
+                                    Command="{Binding CancelCurrentCommand}"
+                                    BackgroundColor="#ef4444"
+                                    TextColor="White"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    HeightRequest="32"
+                                    Padding="14,0"
+                                    CornerRadius="4" />
+
+                            <Button Grid.Column="1"
+                                    Text="Retry Failed"
+                                    Command="{Binding RetryFailedCommand}"
+                                    BackgroundColor="#ea580c"
+                                    TextColor="White"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    HeightRequest="32"
+                                    Padding="14,0"
+                                    CornerRadius="4" />
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- ── RIGHT PANEL: DOWNLOAD HISTORY ── -->
+                <Border Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource SurfaceBackgroundDark}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                        StrokeThickness="1"
+                        Padding="14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <Grid RowDefinitions="Auto, *" RowSpacing="10">
+                        <!-- History Header with Filter Search -->
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Grid.Column="0"
+                                   Text="{x:Static helpers:MaterialIcon.Folder}"
+                                   FontFamily="MaterialIcons"
+                                   FontSize="18"
+                                   TextColor="#f59e0b"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="Download History"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   VerticalOptions="Center" />
+                            
+                            <Border Grid.Column="2"
+                                    BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#18181b}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                    StrokeThickness="1"
+                                    Padding="6,0"
+                                    HeightRequest="28"
+                                    WidthRequest="140">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="4" />
+                                </Border.StrokeShape>
+                                <Entry Text="{Binding HistorySearchQuery}"
+                                       Placeholder="Filter history…"
+                                       PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                       FontSize="11"
+                                       ClearButtonVisibility="WhileEditing" />
+                            </Border>
+
+                            <Button Grid.Column="3"
+                                    Text="Clear All"
+                                    Command="{Binding ClearHistoryCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#fee2e2, Dark=#24242a}"
+                                    TextColor="#ef4444"
+                                    FontSize="11"
+                                    HeightRequest="26"
+                                    Padding="10,0"
+                                    CornerRadius="4" />
+                        </Grid>
+
+                        <!-- History Records List -->
+                        <ScrollView Grid.Row="1">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="No past downloads found."
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                       FontSize="12"
+                                       IsVisible="{Binding FilteredHistoryItems.Count, Converter={StaticResource InvertedBoolConverter}}"
+                                       Margin="0,20,0,0"
+                                       HorizontalOptions="Center" />
+
+                                <CollectionView ItemsSource="{Binding FilteredHistoryItems}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:DownloadRecord">
+                                            <Border BackgroundColor="{AppThemeBinding Light=#ffffff, Dark=#18181b}"
+                                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                                    StrokeThickness="1"
+                                                    Padding="10,8"
+                                                    Margin="0,2">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="6" />
+                                                </Border.StrokeShape>
+                                                <Grid ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="8" VerticalOptions="Center">
+                                                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="1">
+                                                        <Label Text="{Binding Title}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                                               FontAttributes="Bold"
+                                                               FontSize="12"
+                                                               LineBreakMode="TailTruncation" />
+                                                        <Label Text="{Binding Artist}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                                               FontSize="10"
+                                                               LineBreakMode="TailTruncation" />
+                                                    </VerticalStackLayout>
+
+                                                    <!-- Quality badge -->
+                                                    <Border Grid.Column="1"
+                                                            BackgroundColor="{AppThemeBinding Light=#fef3c7, Dark=#121216}"
+                                                            Stroke="{AppThemeBinding Light=#f59e0b, Dark=#3f3f46}"
+                                                            Padding="6,2"
+                                                            VerticalOptions="Center">
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="8" />
+                                                        </Border.StrokeShape>
+                                                        <Label Text="{Binding Quality, StringFormat='{0} kbps'}"
+                                                               TextColor="#f59e0b"
+                                                               FontSize="9"
+                                                               FontAttributes="Bold" />
+                                                    </Border>
+
+                                                    <!-- Play Local File Button -->
+                                                    <Button Grid.Column="2"
+                                                            Text="{x:Static helpers:MaterialIcon.Play}"
+                                                            FontFamily="MaterialIcons"
+                                                            FontSize="14"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DownloadsViewModel}}, Path=PlayDownloadedTrackCommand}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#24242a}"
+                                                            TextColor="#ea580c"
+                                                            WidthRequest="28"
+                                                            HeightRequest="28"
+                                                            CornerRadius="14"
+                                                            Padding="0" />
+
+                                                    <!-- Reveal In Explorer Button (Windows only) -->
+                                                    <Button Grid.Column="3"
+                                                            Text="{x:Static helpers:MaterialIcon.Folder}"
+                                                            FontFamily="MaterialIcons"
+                                                            FontSize="14"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DownloadsViewModel}}, Path=RevealFileInFolderCommand}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#e2e8f0, Dark=#24242a}"
+                                                            TextColor="{AppThemeBinding Light=#475569, Dark=#cbd5e1}"
+                                                            WidthRequest="28"
+                                                            HeightRequest="28"
+                                                            CornerRadius="14"
+                                                            Padding="0" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </ScrollView>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ── MOBILE (ANDROID) STACKED VIEW ── -->
+            <Grid IsVisible="{OnPlatform WinUI=False, Default=True}">
+                <!-- Mobile Queue Panel -->
+                <CollectionView ItemsSource="{Binding QueueItems}"
+                                ItemSizingStrategy="MeasureFirstItem"
+                                IsVisible="{Binding MobileTabSelected, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=0}">
+                    <CollectionView.Header>
+                        <VerticalStackLayout Spacing="6" Margin="0,0,0,8">
+                            <Label Text="{Binding QueueItems.Count, StringFormat='Active Queue ({0} tracks)'}"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="#ea580c" />
+                            <Label Text="No tracks in queue."
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   IsVisible="{Binding HasQueueItems, Converter={StaticResource InvertedBoolConverter}}" />
+                        </VerticalStackLayout>
+                    </CollectionView.Header>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:TrackItem">
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                    Padding="10,8"
+                                    Margin="0,2">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="6" />
+                                </Border.StrokeShape>
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <Label Text="{Binding Title}" TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" FontAttributes="Bold" FontSize="12" />
+                                        <Label Grid.Column="1" Text="{Binding Status}" TextColor="#ea580c" FontSize="10" />
+                                    </Grid>
+                                    <ProgressBar Progress="{Binding ProgressFraction}" ProgressColor="#ea580c" HeightRequest="3" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Mobile History Panel -->
+                <CollectionView ItemsSource="{Binding FilteredHistoryItems}"
+                                ItemSizingStrategy="MeasureFirstItem"
+                                IsVisible="{Binding MobileTabSelected, Converter={StaticResource EqualToBoolConverter}, ConverterParameter=1}">
+                    <CollectionView.Header>
+                        <Label Text="Download History" FontSize="13" FontAttributes="Bold" TextColor="#f59e0b" Margin="0,0,0,8" />
+                    </CollectionView.Header>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:DownloadRecord">
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                    Padding="8"
+                                    Margin="0,3">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Grid ColumnDefinitions="42, *, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                    <!-- Embedded Audio Artwork -->
+                                    <controls:ArtworkView Grid.Column="0"
+                                                          WidthRequest="40"
+                                                          HeightRequest="40"
+                                                          ArtworkUrl="{Binding FilePath}"
+                                                          CornerRadiusValue="6" />
+
+                                    <!-- Title & Artist -->
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding Title}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                               FontAttributes="Bold"
+                                               FontSize="12"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1" />
+                                        <Label Text="{Binding Artist}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                               FontSize="10"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1" />
+                                    </VerticalStackLayout>
+
+                                    <!-- Play Button -->
+                                    <Button Grid.Column="2"
+                                            Text="▶ Play"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DownloadsViewModel}}, Path=PlayDownloadedTrackCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="#ea580c"
+                                            TextColor="White"
+                                            FontSize="11"
+                                            FontAttributes="Bold"
+                                            HeightRequest="32"
+                                            Padding="12,0"
+                                            CornerRadius="16" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentView>

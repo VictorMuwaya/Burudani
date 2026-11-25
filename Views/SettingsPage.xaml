@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Burudani.ViewModels"
+             xmlns:helpers="clr-namespace:Burudani.Helpers"
+             x:Class="Burudani.Views.SettingsPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource AppBackgroundLight}, Dark={StaticResource AppBackgroundDark}}">
+
+    <ContentView.BindingContext>
+        <vm:SettingsViewModel />
+    </ContentView.BindingContext>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,16" Spacing="16" MaximumWidthRequest="740">
+            <!-- Header with Back Button (Mobile) -->
+            <Grid ColumnDefinitions="Auto, Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                <Button Grid.Column="0"
+                        Text="{x:Static helpers:MaterialIcon.ArrowLeft}"
+                        FontFamily="MaterialIcons"
+                        FontSize="18"
+                        Clicked="OnBackClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                        WidthRequest="36"
+                        HeightRequest="36"
+                        Padding="0"
+                        IsVisible="{OnPlatform WinUI=False, Default=True}" />
+                <Label Grid.Column="1"
+                       Text="{x:Static helpers:MaterialIcon.Cog}"
+                       FontFamily="MaterialIcons"
+                       FontSize="24"
+                       TextColor="#ea580c"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="2"
+                       Text="Settings &amp; Preferences"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                       VerticalOptions="Center" />
+            </Grid>
+
+            <!-- Status Banner -->
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="#10b981"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   IsVisible="{Binding StatusMessage, Converter={StaticResource NullOrEmptyToBoolConverter}}" />
+
+            <!-- ── Card 1: Discovery Region ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Discovery &amp; Trending Music Region"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="Select region for top charts and trending feeds:"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="11" />
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="12,0"
+                            HeightRequest="38">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Text="{Binding SelectedRegion.Value, FallbackValue='Select Region'}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="12"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="▾"
+                                   TextColor="#ea580c"
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ChooseRegionCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 1B: Default Music Catalog ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Default Music Search Catalog"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="Select which music index or source to search by default:"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="11" />
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="12,0"
+                            HeightRequest="38">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Text="{Binding SelectedSource.Value, FallbackValue='Select Catalog'}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="12"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="▾"
+                                   TextColor="#ea580c"
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ChooseSourceCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 2: Download Target Folder ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Download Destination Folder"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="All downloaded audio tracks and complete albums will be stored in this directory."
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="11" />
+                    
+                    <!-- Editable Directory Path Input -->
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="10,0"
+                            HeightRequest="42">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="6" />
+                        </Border.StrokeShape>
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="{x:Static helpers:MaterialIcon.Folder}"
+                                   FontFamily="MaterialIcons"
+                                   FontSize="16"
+                                   TextColor="#ea580c"
+                                   VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Text="{Binding DownloadFolder, Mode=TwoWay}"
+                                   Placeholder="/storage/emulated/0/Burudani"
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="12"
+                                   VerticalOptions="Center"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Path Management Action Buttons -->
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                        <Button Text="Save Path"
+                                Command="{Binding SaveDownloadFolderCommand}"
+                                BackgroundColor="#ea580c"
+                                TextColor="White"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                HeightRequest="32"
+                                Padding="14,0"
+                                CornerRadius="6"
+                                Margin="0,0,8,8" />
+                        <Button Text="Reset to Default"
+                                Command="{Binding ResetDownloadFolderCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#27272a}"
+                                TextColor="{AppThemeBinding Light=#334155, Dark=#e2e8f0}"
+                                BorderColor="{AppThemeBinding Light=#cbd5e1, Dark=#3f3f46}"
+                                BorderWidth="1"
+                                FontSize="11"
+                                HeightRequest="32"
+                                Padding="12,0"
+                                CornerRadius="6"
+                                Margin="0,0,8,8" />
+                        <Button Text="Browse…"
+                                Command="{Binding PickDownloadFolderCommand}"
+                                IsVisible="{OnPlatform WinUI=True, Default=False}"
+                                BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#27272a}"
+                                TextColor="{AppThemeBinding Light=#334155, Dark=#e2e8f0}"
+                                BorderColor="{AppThemeBinding Light=#cbd5e1, Dark=#3f3f46}"
+                                BorderWidth="1"
+                                FontSize="11"
+                                HeightRequest="32"
+                                Padding="12,0"
+                                CornerRadius="6"
+                                Margin="0,0,8,8" />
+                        <Button Text="Open Folder"
+                                Command="{Binding OpenDownloadFolderCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#27272a}"
+                                TextColor="{AppThemeBinding Light=#334155, Dark=#e2e8f0}"
+                                BorderColor="{AppThemeBinding Light=#cbd5e1, Dark=#3f3f46}"
+                                BorderWidth="1"
+                                FontSize="11"
+                                HeightRequest="32"
+                                Padding="12,0"
+                                CornerRadius="6"
+                                Margin="0,0,8,8" />
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 3: Quality Bitrate ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Audio Extraction Bitrate"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="Select the target bitrate for converted MP3 audio files. Higher bitrates preserve more fidelity."
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="11" />
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="12,0"
+                            HeightRequest="38">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Text="{Binding Bitrate, FallbackValue='320 kbps (Maximum Fidelity)'}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="12"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="▾"
+                                   TextColor="#ea580c"
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ChooseBitrateCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 4: Application Theme ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Application Theme"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="Customize the visual theme. Color schemes update immediately."
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                           FontSize="11" />
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="12,0"
+                            HeightRequest="38">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Text="{Binding Theme, FallbackValue='Dark Mode'}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                                   FontSize="12"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="▾"
+                                   TextColor="#ea580c"
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ChooseThemeCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 5: ID3 Audio Metadata ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ID3 Audio Metadata &amp; Embedded Tags"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    
+                    <!-- Callout Box -->
+                    <Border BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#18181b}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark=#3f3f46}"
+                            StrokeThickness="1"
+                            Padding="12">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="6" />
+                        </Border.StrokeShape>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="What are ID3 tags?"
+                                   TextColor="#ea580c"
+                                   FontAttributes="Bold"
+                                   FontSize="12" />
+                            <Label Text="ID3 tags embed title, artist, album, and full HD cover art directly inside the MP3 audio file itself. This guarantees that wherever you play your music (car audio, phones, media players), all song details and high-resolution album artwork are preserved."
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#cbd5e1}"
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <Label Text="Embed Metadata &amp; Artwork into MP3s"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=#cbd5e1}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center" />
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding EmbedId3Tags}"
+                                OnColor="#ea580c"
+                                ThumbColor="White" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 6: Transcoding Engine Diagnostics ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Audio Transcoding Engine"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label Text="{Binding FfmpegStatus}"
+                           TextColor="#10b981"
+                           FontSize="11" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Card 7: Storage & Privacy ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="STORAGE &amp; PRIVACY"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="#ea580c" />
+
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0"
+                               Text="Clear Play History"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#cbd5e1}"
+                               FontSize="12"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Text="Clear"
+                                Command="{Binding ClearPlayHistoryCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#fee2e2, Dark=#24242a}"
+                                TextColor="#ef4444"
+                                BorderColor="{AppThemeBinding Light=#fca5a5, Dark=#3f3f46}"
+                                BorderWidth="1"
+                                FontSize="11"
+                                HeightRequest="30"
+                                Padding="12,0"
+                                CornerRadius="4" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0"
+                               Text="Clear Download History"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#cbd5e1}"
+                               FontSize="12"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Text="Clear"
+                                Command="{Binding ClearDownloadHistoryCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#fee2e2, Dark=#24242a}"
+                                TextColor="#ef4444"
+                                BorderColor="{AppThemeBinding Light=#fca5a5, Dark=#3f3f46}"
+                                BorderWidth="1"
+                                FontSize="11"
+                                HeightRequest="30"
+                                Padding="12,0"
+                                CornerRadius="4" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Save Preferences Button -->
+            <Button Text="Save Preferences"
+                    Command="{Binding SaveSettingsCommand}"
+                    BackgroundColor="#ea580c"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="13"
+                    HeightRequest="40"
+                    CornerRadius="6" />
+
+            <!-- ── About & Educational Purpose (Beta) ── -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                    StrokeThickness="1"
+                    Padding="16"
+                    Margin="0,4,0,16">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Label Text="ABOUT &amp; LEGAL"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="#ea580c" />
+                        <Border BackgroundColor="{AppThemeBinding Light=#fff7ed, Dark=#271d18}"
+                                Stroke="#ea580c"
+                                StrokeThickness="1"
+                                Padding="6,1"
+                                VerticalOptions="Center">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="6" />
+                            </Border.StrokeShape>
+                            <Label Text="BETA v1.0.0"
+                                   TextColor="#ea580c"
+                                   FontSize="9"
+                                   FontAttributes="Bold" />
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <Label Text="Burudani — Modern Cross-Platform Audio UI &amp; API Showcase"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                           FontAttributes="Bold"
+                           FontSize="14" />
+
+                    <!-- Educational Notice Callout -->
+                    <Border BackgroundColor="{AppThemeBinding Light=#f8fafc, Dark=#14181c}"
+                            Stroke="{AppThemeBinding Light=#e2e8f0, Dark=#252d33}"
+                            StrokeThickness="1"
+                            Padding="12,10">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="6" />
+                        </Border.StrokeShape>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Educational Demonstration Software"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=#fb923c}"
+                                   FontAttributes="Bold"
+                                   FontSize="12" />
+                            <Label Text="This application is developed strictly for educational, technical demonstration, and research purposes. It showcases how to build responsive cross-platform front-end interfaces, handle asynchronous media streaming APIs, manage audio playback state, and implement resilient background playback architectures in .NET 10 MAUI across Windows and Android."
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#94a3b8}"
+                                   FontSize="11"
+                                   LineBreakMode="WordWrap" />
+                            <Label Text="Notice: The software is provided &quot;as is&quot; without warranty of any kind. Any use of this application, and whatever the end-user intends to use it for, is entirely at the sole discretion and responsibility of the user."
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#94a3b8}"
+                                   FontSize="10"
+                                   FontAttributes="Italic"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*, Auto" Margin="0,4,0,0">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="License &amp; Open Source"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark=White}"
+                                   FontSize="12"
+                                   FontAttributes="Bold" />
+                            <Label Text="GNU General Public License v3.0 (GPL-3.0)"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#71717a}"
+                                   FontSize="11" />
+                        </VerticalStackLayout>
+                        <Border Grid.Column="1"
+                                StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{AppThemeBinding Light=#f1f5f9, Dark=#24242a}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark=#3f3f46}"
+                                StrokeThickness="1"
+                                Padding="10,6"
+                                VerticalOptions="Center">
+                            <Label Text="Open Source"
+                                   TextColor="#ea580c"
+                                   FontSize="11"
+                                   FontAttributes="Bold" />
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

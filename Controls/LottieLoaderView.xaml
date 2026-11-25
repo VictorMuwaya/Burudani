@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Burudani.Controls.LottieLoaderView"
+             BackgroundColor="Transparent">
+    <VerticalStackLayout HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Spacing="12"
+                         BackgroundColor="Transparent">
+        <WebView x:Name="LottieWebView"
+                 WidthRequest="180"
+                 HeightRequest="180"
+                 BackgroundColor="Transparent"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center" />
+        <Label x:Name="StatusLabel"
+               Text="{Binding StatusMessage, FallbackValue='Loading...'}"
+               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark=#cbd5e1}"
+               FontSize="13"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               HorizontalTextAlignment="Center" />
+    </VerticalStackLayout>
+</ContentView>
