@@ -33,7 +33,7 @@ The project solves several complex real-world front-end and multimedia challenge
 - **Non-Blocking Background Media Service**: Managing Android `MediaSessionCompat`, lockscreen notification actions, and audio focus alongside an asynchronous UI heartbeat seekbar sync loop.
 - **Multi-Catalog & Spotify Streaming Experience**: Unified browsing and streaming across public music catalogs—including a **Spotify-style streaming & discovery experience** alongside Apple Music/iTunes, Deezer, and YouTube Music.
 
-> For full product specifications, functional requirements, and user stories, see the **[Product Requirements Document (PRD.md)](PRD.md)**.
+> For full product specifications, functional requirements, and user stories, see the **[Product Requirements Document (PRD.md)](ProductRequirementDocument.md)**.
 
 ---
 
