@@ -104,55 +104,55 @@ Burudani.Android (Dedicated Android Head Project)
 ## 6. User Stories & Acceptance Criteria
 
 ### Epic 1: Music Discovery
-- **US-1.1 — Browse Trending Tracks by Region**
+- **US-1.1 Browse Trending Tracks by Region**
   - *As a user*, I want to switch my discovery region so that I can explore trending music charts from different countries.
   - *Acceptance Criteria:* Tapping the region pill opens the region selector; picking a region updates `CurrentRegion` and reloads trending tracks with a loading indicator.
-- **US-1.2 — Filter by Genre**
+- **US-1.2 Filter by Genre**
   - *As a user*, I want to tap genre pills at the top of Discovery so that I can narrow trending results to a specific genre.
   - *Acceptance Criteria:* Tapping a genre pill highlights the selected pill, cancels any in-flight request, and loads matching tracks.
-- **US-1.3 — Smooth Infinite Scroll**
+- **US-1.3 Smooth Infinite Scroll**
   - *As an Android user*, I want to scroll rapidly through Discovery cards without stuttering or frozen frames.
   - *Acceptance Criteria:* Scrolling loads cached artwork from native `BitmapLruCache` in 0ms on the UI thread, batch-inserts 20 items at a time via `AddRange`, and avoids layout thrashing.
 
 ### Epic 2: Search & Catalog Exploration
-- **US-2.1 — Live Autocomplete Search**
+- **US-2.1 Live Autocomplete Search**
   - *As a user*, I want search suggestions to appear as I type so that I can quickly find artists or songs.
   - *Acceptance Criteria:* Typing 2+ characters shows up to 6 suggestions; tapping one fills the query, dismisses the keyboard, and runs the search.
-- **US-2.2 — Switch Between Grid, List, and Album Views**
+- **US-2.2 Switch Between Grid, List, and Album Views**
   - *As a user*, I want to toggle between Songs (Grid), Songs (List), and Albums so that I can browse results in my preferred layout.
   - *Acceptance Criteria:* Selecting a layout updates `SongsCollectionView` or `Albums` view cleanly without losing search results.
-- **US-2.3 — Filter Search by Catalog Source**
+- **US-2.3 Filter Search by Catalog Source**
   - *As a user*, I want to choose between All Sources, Apple Music/iTunes, Deezer, YouTube Music, or Spotify so that I can compare catalog results.
   - *Acceptance Criteria:* Changing the source re-runs the current query against the selected catalog.
-- **US-2.4 — Stream & Experience with Spotify**
+- **US-2.4 Stream & Experience with Spotify**
   - *As a user*, I want to stream music and browse tracks with a Spotify-style streaming experience so that I can discover, queue, and listen to tracks seamlessly from Spotify alongside other catalogs.
   - *Acceptance Criteria:* Selecting Spotify as a source or pasting a Spotify track/album/playlist link resolves playable streams, displays artwork and metadata, and plays smoothly in the in-app player.
 
 ### Epic 3: Audio Playback & Responsive Player
-- **US-3.1 — Instant Track Playback**
+- **US-3.1 Instant Track Playback**
   - *As a user*, I want to tap Play on any track card or list row so that playback starts immediately and queues the surrounding tracks.
   - *Acceptance Criteria:* Tapping Play invokes `PlayTrackCommand` and populates the active queue in `PlayerService`.
-- **US-3.2 — Seek From Mini-Player (Windows)**
+- **US-3.2 Seek From Mini-Player (Windows)**
   - *As a Windows user*, I want the global mini-player seek bar to support scrubbing just like the full player.
   - *Acceptance Criteria:* Dragging or clicking the mini-player seek bar updates the playback position smoothly without fighting the 250ms heartbeat timer.
-- **US-3.3 — Background Playback & Lockscreen Notification (Android)**
+- **US-3.3 Background Playback & Lockscreen Notification (Android)**
   - *As an Android user*, I want media controls in the notification shade using the custom `ic_notification` icon when the app is backgrounded.
   - *Acceptance Criteria:* `BurudaniMediaService` displays persistent media notification controls with `ic_notification` and responds to Play/Pause/Next/Previous actions.
 
 ### Epic 4: Playlists & Global Access
-- **US-4.1 — Quick Access Playlists Anywhere**
+- **US-4.1 Quick Access Playlists Anywhere**
   - *As a user*, I want a floating circular Playlists button accessible from any screen so that I can manage or play playlists without navigating away first.
   - *Acceptance Criteria:* The 52x52 floating circular button is visible on both Windows and Android and opens playlist management/selection on tap.
 
 ### Epic 5: Offline Queue Hub & Tagging
-- **US-5.1 — Monitor Active Queue & History**
+- **US-5.1 Monitor Active Queue & History**
   - *As a user*, I want to view queued/active items with live progress, speed, and ETA, and search my completed history.
   - *Acceptance Criteria:* `DownloadsPage` updates progress in real time and filters `HistoryItems` as the user types in the history search box.
 
 ### Epic 6: Settings & Educational Transparency
-- **US-6.1 — Customize Theme, Bitrate & Defaults**
+- **US-6.1 Customize Theme, Bitrate & Defaults**
   - *As a user*, I want to switch between Dark, Light, and System themes and set my preferred bitrate and region.
   - *Acceptance Criteria:* Theme changes apply immediately via `ThemeService` and persist via `StorageService`.
-- **US-6.2 — Clear Beta & Educational Status**
+- **US-6.2 Clear Beta & Educational Status**
   - *As a reviewer or contributor*, I want the app's Beta status, educational purpose, and GPL-3.0 license clearly visible in the UI and documentation.
   - *Acceptance Criteria:* `BETA` badges appear in the app headers and Settings/About section alongside the educational disclaimer and GPL-3.0 notice.
