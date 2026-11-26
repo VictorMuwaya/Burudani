@@ -82,7 +82,7 @@ The project solves several complex real-world front-end and multimedia challenge
 ## Windows App Screenshots & Page Walkthrough
 
 > [!TIP]
-> Follow screenshots to get a sense of how the application runs on Windows The reason the Android screenshots may not be available for now is that Android is still under critical development in the release version of Android is highly unstable.
+> Follow screenshots to get a sense of how the application runs on Windows. The reason the Android screenshots may not be available for now is that Android is still under critical development and the release version of Android is highly unstable.
 
 ### 1. Discovery Page
 <img width="1912" height="1012" alt="Screenshot 2026-11-26 101451" src="https://github.com/user-attachments/assets/2408195d-b491-42ba-a0df-ef0c49f2cf9a" />
