@@ -3,7 +3,7 @@
 
 [![Platform](https://img.shields.io/badge/Platforms-Windows%20%7C%20Android-ea580c?style=flat-square)](#supported-platforms)
 [![Framework](https://img.shields.io/badge/.NET-10.0%20MAUI-512bd4?style=flat-square)](#technology-stack)
-[![Status](https://img.shields.io/badge/Status-Beta%20v3.0.0-f59e0b?style=flat-square)](#project-overview)
+[![Status](https://img.shields.io/badge/Status-Beta%20v1.0.0-f59e0b?style=flat-square)](#project-overview)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square)](#license--disclaimer)
 
 ---
@@ -31,6 +31,9 @@ The project solves several complex real-world front-end and multimedia challenge
 - **YouTube Music-Style Bottom Sheet & Morphing Player**: Fluid tactile bottom sheet transitions from a headless collapsed mini-bar into a full dome audio player using gesture recognizers and pan interpolation.
 - **Universal Artwork Pipeline**: Extracting embedded ID3v2/MP4 cover art bytes for offline playback as well as streaming high-resolution web artwork, coupled with in-memory RAM caching and Glide/Coil bitmap decoding.
 - **Non-Blocking Background Media Service**: Managing Android `MediaSessionCompat`, lockscreen notification actions, and audio focus alongside an asynchronous UI heartbeat seekbar sync loop.
+- **Multi-Catalog & Spotify Streaming Experience**: Unified browsing and streaming across public music catalogs—including a **Spotify-style streaming & discovery experience** alongside Apple Music/iTunes, Deezer, and YouTube Music.
+
+> For full product specifications, functional requirements, and user stories, see the **[Product Requirements Document (PRD.md)](PRD.md)**.
 
 ---
 
@@ -70,9 +73,49 @@ The project solves several complex real-world front-end and multimedia challenge
 - Bypasses file I/O checks (`File.Exists`) for remote HTTP/HTTPS URLs and debounces redundant property changes during cell recycling.
 
 ### 3. Media & API Pipeline Demonstration
-- **API Integration**: Showcases debounced live querying against web music search APIs and stream endpoint resolution.
+- **API Integration**: Showcases debounced live querying against web music search APIs (including Spotify-style catalog streaming, Apple Music/iTunes, Deezer, and YouTube Music) and stream endpoint resolution.
 - **Metadata Embedding**: Demonstrates how to write standard ID3v2.3 tags for `.mp3` containers and native atom headers for `.m4a` containers using `TagLibSharp`.
 - **Seek Synchronization**: Implements a 250ms dispatcher heartbeat timer to ensure continuous timestamp tracking and progress fill synchronization across platforms without freezing during backgrounding.
+
+---
+
+## Windows App Screenshots & Page Walkthrough
+
+> [!TIP]
+> Drop your Windows screenshots into `docs/screenshots/` using the filenames below and they will render automatically on GitHub.
+
+### 1. Discovery Page
+<img width="1912" height="1012" alt="Screenshot 2026-11-26 101451" src="https://github.com/user-attachments/assets/2408195d-b491-42ba-a0df-ef0c49f2cf9a" />
+
+- **Region & Genre Filtering:** Switch between 12 regional charts and 13 genre pills (`All Genres`, `Pop`, `Hip-Hop`, `R&B`, `Afrobeats`, `Rock`, `Electronic`, and more).
+- **4-Column Responsive Track Grid:** Displays artwork cards with hover/overlay Play and Queue buttons, duration badges, and incremental pagination.
+- **Offline Awareness:** Automatically detects connectivity loss and provides a one-click Refresh action.
+
+### 2. Search & Catalog Page
+<img width="1908" height="1016" alt="Screenshot 2026-11-26 101333" src="https://github.com/user-attachments/assets/d62d89ea-c493-462a-a0d8-1f5e955bcb62" />
+
+- **Live Autocomplete:** Typing 2+ characters fetches instant query suggestions in a dropdown.
+- **Multi-Catalog & Spotify Experience:** Filter searches across **All Sources**, **Spotify**, **Apple Music / iTunes**, **Deezer**, and **YouTube Music**, or paste direct media links.
+- **Flexible Layouts:** Switch seamlessly between **Songs (Grid View)**, **Songs (List View)**, and **Albums (Grid View)**.
+
+### 3. Music Player, Mini-Player & Playlists
+<img width="1912" height="1012" alt="Screenshot 2026-11-26 101451" src="https://github.com/user-attachments/assets/055ac90b-b546-4e7e-9c81-d023598c8f77" />
+
+- **Persistent Global Mini-Player Bar:** Docked across the bottom on Windows with track artwork, transport controls, and a full click-and-drag **interactive seek bar** matching the main player.
+- **Full Player & Queue Management:** Features large artwork display, Play/Pause, Next/Previous, Repeat modes, volume control, **Up Next** queue, **Playlists**, and **Play History** tabs.
+- **Global Floating Playlist Button:** A circular floating action button (`#ea580c`) accessible from every page for instant playlist creation and playback.
+
+### 4. Queue & Offline Hub (Downloads Hub)
+<img width="1917" height="1013" alt="Screenshot 2026-11-26 101415" src="https://github.com/user-attachments/assets/66a02ecd-eded-47d6-9b66-fa0c3e35389e" />
+
+- **Live Queue Monitoring:** Displays overall progress, transfer speed, and per-item status (`Queued`, `Downloading`, `Converting`, `Completed`, `Failed`).
+- **Searchable History:** Filter past items in real time by title, artist, or album.
+
+### 5. Settings & About (`Beta v1.0.0`)
+<img width="1917" height="1015" alt="image" src="https://github.com/user-attachments/assets/9df84e68-7e84-48be-ab38-12977ca85df1" />
+
+- **Personalization:** Switch between **Dark Mode**, **Light Mode**, and **System Default**, and configure default region, catalog source, audio bitrate (`128`–`320 kbps`), playback mode, and ID3/MP4 tag embedding.
+- **Diagnostics & Transparency:** Shows FFmpeg engine status, `BETA v1.0.0` build badge, educational disclaimer, and GPL-3.0 license details.
 
 ---
 
@@ -122,7 +165,7 @@ dotnet run --project "Burudani.Android\Burudani.Android.csproj" -f net10.0-andro
 
 ---
 
-##  License & Disclaimer
+## License & Disclaimer
 
 This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)** with additional educational disclaimers. See the [LICENSE](LICENSE) file for the full text.
 
@@ -140,9 +183,3 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 ```
-<img width="1910" height="1007" alt="image" src="https://github.com/user-attachments/assets/1a684f26-1bf2-43a1-bf39-c567bac723c5" />
-<img width="1907" height="1016" alt="image" src="https://github.com/user-attachments/assets/8af3c8b3-d3e1-4ed6-b298-46d7dd243f43" />
-<img width="1917" height="1012" alt="image" src="https://github.com/user-attachments/assets/b43fa5cf-46d3-4e02-ac9b-8f24cb69ced4" />
-<img width="1912" height="1012" alt="image" src="https://github.com/user-attachments/assets/a31f3518-a1d0-452a-8ad5-88604bbfc704" />
-
-
